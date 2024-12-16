@@ -5,8 +5,6 @@
 ; du robot et vice versa.
 
 		AREA    |.text|, CODE, READONLY
-		ENTRY
-		EXPORT	__main
 		
 		;; The IMPORT command specifies that a symbol is defined in a shared object at runtime.
 		IMPORT	MOTEUR_INIT					; initialise les moteurs (configure les pwms + GPIO)
@@ -22,6 +20,13 @@
 		IMPORT  MOTEUR_GAUCHE_AVANT			; moteur gauche tourne vers l'avant
 		IMPORT  MOTEUR_GAUCHE_ARRIERE		; moteur gauche tourne vers l'arri�re
 		IMPORT  MOTEUR_GAUCHE_INVERSE		; inverse le sens de rotation du moteur gauche
+
+
+		IMPORT LEDBOTH_CONFIG				; Configuration les deux LEDs
+		IMPORT LED1_CONFIG					; Configuration LED1
+		IMPORT LED2_CONFIG					; Configuration LED 2
+		IMPORT SW1_CONFIG					; Configuration SW1
+		IMPORT BLINK_LED					; Algo qui fait clignoter les LEDs
 
 ; This register controls the clock gating logic in normal Run mode
 ; SYSCTL_RCGC2_R (p291 datasheet de lm3s9b92.pdf
@@ -49,9 +54,12 @@ GPIO_O_PUR			EQU		0x00000510
 PORT67				EQU		0xC0 ; SW 1 et 2 - Lignes 6 et 7 Port D
 PORT6				EQU		0x40 ; SW 1  - Lignes 6 Port D
 PORT7				EQU		0x80 ; SW 2  - Lignes 7 Port D
-
-
-
+DUREE   			EQU     0x002FFFFF
+		
+		
+		ENTRY
+		EXPORT	__main
+		
 __main	
 
 ; Enable the Port D,E and F peripheral clock by setting bit 3,4,5 (0x38 == 0b111000)		
@@ -76,29 +84,34 @@ __main
         	ldr r0, = PORT67	
         	str r0, [r7]
 
-; Configure les PWM + GPIO
 
+; Config LEDS
+			BL LEDBOTH_CONFIG
+; Active LEDs
+			BL BLINK_LED
+			
+; Configure les PWM + GPIO
 			BL	MOTEUR_INIT	   		   
-		
 ; Activer les deux moteurs droit et gauche
 
 			BL	MOTEUR_DROIT_OFF
 			BL	MOTEUR_GAUCHE_OFF
+
 
 loop	
 ; Lire dans R4 l'etat des SW
 			ldr r7,= GPIO_PORTD_BASE + (PORT67<<2)
 			ldr r4, [r7]								
 					
-;Test des �tats des switchs
-; Test de l'�tat de SW2			
+;Test des états des switchs
+; Test de l'état de SW2			
 			cmp	r4,#0x80								
 			beq rotright
-; Test l'�tat de SW1			
+; Test l'état de SW1			
 			cmp r4,#0x40				
 			beq rotleft
 			b	loop
-;Rotation � droite de l'Evalbot		
+;Rotation à droite de l'Evalbot		
 rotright	
 			BL	MOTEUR_DROIT_ON
 			BL	MOTEUR_GAUCHE_ON
@@ -131,7 +144,23 @@ rotleft
 			beq rotright
 
 			b	rotleft
-			b loop			
+			
+			; Test LEDs 			
+			str r2, [r6]    						;; Eteint LED car r2 = 0x00      
+			ldr r1, = DUREE 						;; pour la duree de la boucle d'attente1 (wait1)
+
+wait1		subs r1, #1
+			bne wait1
+
+			str r3, [r6]  							;; Allume portF broche 4 : 00010000 (contenu de r3)
+			ldr r1, = DUREE							;; pour la duree de la boucle d'attente2 (wait2)
+
+wait2   	subs r1, #1
+			bne wait2
+		
+			b loop	
+
+			
        		END
 
 
