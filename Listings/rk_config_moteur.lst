@@ -8,7 +8,7 @@ ARM Macro Assembler    Page 1
     2 00000000         ; programme - Pilotage 2 Moteurs Evalbot par PWM tout en
                         ASM (configure les pwms + GPIO)
     3 00000000         
-    4 00000000         ;Les pages se réfèrent au datasheet lm3s9b92.pdf
+    4 00000000         ;Les pages se rï¿½fï¿½rent au datasheet lm3s9b92.pdf
     5 00000000         
     6 00000000         ;Cablage :
     7 00000000         ;pin 10/PD0/PWM0 => input PWM du pont en H DRV8801RT
@@ -169,36 +169,38 @@ ARM Macro Assembler    Page 3
    63 00000000         ; Valeures plus grandes => Vitesse moins rapide exemple 
                        0x1B2
    64 00000000         
-   65 00000000         
-   66 00000000                 AREA             |.text|, CODE, READONLY
-   67 00000000                 ENTRY
-   68 00000000         
-   69 00000000         ;; The EXPORT command specifies that a symbol can be acc
+   65 00000000 00000052 
+                       VITESSE1
+                               EQU              0x52
+   66 00000000         
+   67 00000000                 AREA             |.text|, CODE, READONLY
+   68 00000000                 ENTRY
+   69 00000000         
+   70 00000000         ;; The EXPORT command specifies that a symbol can be acc
                        essed by other shared objects or executables.
-   70 00000000                 EXPORT           MOTEUR_INIT
-   71 00000000                 EXPORT           MOTEUR_DROIT_ON
-   72 00000000                 EXPORT           MOTEUR_DROIT_OFF
-   73 00000000                 EXPORT           MOTEUR_DROIT_AVANT
-   74 00000000                 EXPORT           MOTEUR_DROIT_ARRIERE
-   75 00000000                 EXPORT           MOTEUR_DROIT_INVERSE
-   76 00000000                 EXPORT           MOTEUR_GAUCHE_ON
-   77 00000000                 EXPORT           MOTEUR_GAUCHE_OFF
-   78 00000000                 EXPORT           MOTEUR_GAUCHE_AVANT
-   79 00000000                 EXPORT           MOTEUR_GAUCHE_ARRIERE
-   80 00000000                 EXPORT           MOTEUR_GAUCHE_INVERSE
-   81 00000000         
+   71 00000000                 EXPORT           MOTEUR_INIT
+   72 00000000                 EXPORT           MOTEUR_DROIT_ON
+   73 00000000                 EXPORT           MOTEUR_DROIT_OFF
+   74 00000000                 EXPORT           MOTEUR_DROIT_AVANT
+   75 00000000                 EXPORT           MOTEUR_DROIT_ARRIERE
+   76 00000000                 EXPORT           MOTEUR_DROIT_INVERSE
+   77 00000000                 EXPORT           MOTEUR_GAUCHE_ON
+   78 00000000                 EXPORT           MOTEUR_GAUCHE_OFF
+   79 00000000                 EXPORT           MOTEUR_GAUCHE_AVANT
+   80 00000000                 EXPORT           MOTEUR_GAUCHE_ARRIERE
+   81 00000000                 EXPORT           MOTEUR_GAUCHE_INVERSE
    82 00000000         
    83 00000000         MOTEUR_INIT
    84 00000000 4E5C            ldr              r6, = SYSCTL_RCGC0
    85 00000002 6830            ldr              r0, [R6]
-   86 00000004 F440 1080       ORR              r0, r0, #0x00100000 ;;bit 20 = 
-                                                            PWM recoit clock: O
 
 
 
 ARM Macro Assembler    Page 4 
 
 
+   86 00000004 F440 1080       ORR              r0, r0, #0x00100000 ;;bit 20 = 
+                                                            PWM recoit clock: O
                                                             N (p271) 
    87 00000008 6030            str              r0, [r6]
    88 0000000A         
@@ -256,14 +258,14 @@ ARM Macro Assembler    Page 4
   128 0000003C 6030            str              r0, [r6]
   129 0000003E         
   130 0000003E         ;;MOT2 : Alternate Function Select (p 426), PH0 utilise 
-                       PWM donc Alternate funct
-  131 0000003E         ;;donc PH0 = 1
 
 
 
 ARM Macro Assembler    Page 5 
 
 
+                       PWM donc Alternate funct
+  131 0000003E         ;;donc PH0 = 1
   132 0000003E 4E52            ldr              r6, = GPIOAFSEL_H
   133 00000040 6830            ldr              r0, [R6]    ;*(int *)(0x4000700
                                                             0+0x00000420)= *(in
@@ -273,7 +275,7 @@ ARM Macro Assembler    Page 5
   134 00000042 F040 0001       ORR              r0, r0, #0x01 ;
   135 00000046 6030            str              r0, [r6]
   136 00000048         
-  137 00000048         ;;-----------PWM0 pour moteur 1 connecté à PD0
+  137 00000048         ;;-----------PWM0 pour moteur 1 connectï¿½ ï¿½ PD0
   138 00000048         ;;PWM0 produit PWM0 et PWM1 output
   139 00000048         ;;Config Modes PWM0 + mode GenA + mode GenB
   140 00000048 4E50            ldr              r6, = PWM0CTL
@@ -321,14 +323,14 @@ ARM Macro Assembler    Page 5
                                                             0F42400
   161 0000006A F04F 0036       mov              r0, #VITESSE
   162 0000006E 6030            str              r0, [r6]
-  163 00000070         
-  164 00000070 4E4B            ldr              r6, =PWM0CMPB ;PWM0CMPB recoit 
 
 
 
 ARM Macro Assembler    Page 6 
 
 
+  163 00000070         
+  164 00000070 4E4B            ldr              r6, =PWM0CMPB ;PWM0CMPB recoit 
                                                             meme valeur. (rappo
                                                             rt cyclique depend 
                                                             de CMPA)
@@ -342,7 +344,7 @@ ARM Macro Assembler    Page 6
   171 0000007C F040 0007       ORR              r0, r0, #0x07
   172 00000080 6030            str              r0, [r6]
   173 00000082         
-  174 00000082         ;;-----------PWM2 pour moteur 2 connecté à PH0
+  174 00000082         ;;-----------PWM2 pour moteur 2 connectï¿½ ï¿½ PH0
   175 00000082         ;;PWM1block produit PWM2 et PWM3 output
   176 00000082         ;;Config Modes PWM2 + mode GenA + mode GenB
   177 00000082 4E48            ldr              r6, = PWM1CTL
@@ -386,19 +388,19 @@ ARM Macro Assembler    Page 6
                        =0x1F4
   195 0000009A 4E45            ldr              r6, =PWM1LOAD
   196 0000009C F44F 70FA       mov              r0, #0x1F4
-  197 000000A0 6030            str              r0,[r6]
-  198 000000A2         
 
 
 
 ARM Macro Assembler    Page 7 
 
 
+  197 000000A0 6030            str              r0,[r6]
+  198 000000A2         
   199 000000A2 4E44            ldr              r6, =PWM1CMPA ;Valeur rapport c
                                                             yclique : pour 10% 
                                                             => 1C2h si clock = 
                                                             0F42400
-  200 000000A4 F04F 0036       mov              r0, #VITESSE
+  200 000000A4 F04F 0052       mov              r0, #VITESSE1
   201 000000A8 6030            str              r0, [r6]    ;*(int *)(0x4002800
                                                             0+0x058)=0x01C2;
   202 000000AA         
@@ -441,8 +443,8 @@ _5)
   228 000000D4 F040 0027       ORR              r0, #(GPIO_0+GPIO_1+GPIO_2+GPIO
 _5)
   229 000000D8 6030            str              r0,[r6]
-  230 000000DA         ;Port D : mise à 1 de slow Decay et 12V et mise à 0 pour
-                        dir et pwm
+  230 000000DA         ;Port D : mise ï¿½ 1 de slow Decay et 12V et mise ï¿½ 0 
+                       pour dir et pwm
   231 000000DA 4E3B            ldr              r6, =(GPIODATA_D+((GPIO_0+GPIO_
 1+GPIO_2+GPIO_5)<<2))
   232 000000DC F04F 0024       mov              r0, #(GPIO_2+GPIO_5) ; #0x24
@@ -451,14 +453,14 @@ _5)
   235 000000E2         ;MOT2, PH1 pour sens moteur ouput
   236 000000E2 4E3A            ldr              r6, =GPIODIR_H
   237 000000E4 F04F 0003       mov              r0, #0x03   ; 
-  238 000000E8 6030            str              r0,[r6]
-  239 000000EA         ;Port H, 2mA les meme
 
 
 
 ARM Macro Assembler    Page 8 
 
 
+  238 000000E8 6030            str              r0,[r6]
+  239 000000EA         ;Port H, 2mA les meme
   240 000000EA 4E39            ldr              r6, =GPIODR2R_H
   241 000000EC F04F 0003       mov              r0, #0x03
   242 000000F0 6030            str              r0,[r6]
@@ -466,7 +468,7 @@ ARM Macro Assembler    Page 8
   244 000000F2 4E38            ldr              r6, =GPIODEN_H
   245 000000F4 F04F 0003       mov              r0, #0x03
   246 000000F8 6030            str              r0,[r6]
-  247 000000FA         ;Port H : mise à 1 pour dir 
+  247 000000FA         ;Port H : mise ï¿½ 1 pour dir 
   248 000000FA 4E37            ldr              r6, =(GPIODATA_H +(GPIO_1<<2))
   249 000000FC F04F 0002       mov              r0, #0x02
   250 00000100 6030            str              r0,[r6]
@@ -481,28 +483,28 @@ ARM Macro Assembler    Page 8
   258 00000104         ;Enable sortie PWM0 (bit 0), p1145 
   259 00000104 4E35            ldr              r6, =PWMENABLE
   260 00000106 6830            ldr              r0, [r6]
-  261 00000108 F040 0001       orr              r0, #0x01   ;bit 0 à 1
+  261 00000108 F040 0001       orr              r0, #0x01   ;bit 0 ï¿½ 1
   262 0000010C 6030            str              r0, [r6]
   263 0000010E 4770            BX               LR
   264 00000110         
   265 00000110         MOTEUR_DROIT_OFF
   266 00000110 4E32            ldr              r6, =PWMENABLE
   267 00000112 6830            ldr              r0, [r6]
-  268 00000114 F000 000E       and              r0, #0x0E   ;bit 0 à 0
+  268 00000114 F000 000E       and              r0, #0x0E   ;bit 0 ï¿½ 0
   269 00000118 6030            str              r0, [r6]
   270 0000011A 4770            BX               LR
   271 0000011C         
   272 0000011C         MOTEUR_GAUCHE_ON
   273 0000011C 4E2F            ldr              r6, =PWMENABLE
   274 0000011E 6830            ldr              r0, [r6]
-  275 00000120 F040 0004       orr              r0, #0x04   ;bit 2 à 1
+  275 00000120 F040 0004       orr              r0, #0x04   ;bit 2 ï¿½ 1
   276 00000124 6030            str              r0, [r6]
   277 00000126 4770            BX               LR
   278 00000128         
   279 00000128         MOTEUR_GAUCHE_OFF
   280 00000128 4E2C            ldr              r6, =PWMENABLE
   281 0000012A 6830            ldr              r0, [r6]
-  282 0000012C F000 000B       and              r0, #0x0B   ;bit 2 à 0
+  282 0000012C F000 000B       and              r0, #0x0B   ;bit 2 ï¿½ 0
   283 00000130 6030            str              r0, [r6]
   284 00000132 4770            BX               LR
   285 00000134         
@@ -516,14 +518,14 @@ ARM Macro Assembler    Page 8
   293 0000013E         MOTEUR_DROIT_AVANT
   294 0000013E         ;Inverse Direction (GPIO_D1)
   295 0000013E 4E28            ldr              r6, =(GPIODATA_D+(GPIO_1<<2))
-  296 00000140 F04F 0002       mov              r0, #2
-  297 00000144 6030            str              r0,[r6]
 
 
 
 ARM Macro Assembler    Page 9 
 
 
+  296 00000140 F04F 0002       mov              r0, #2
+  297 00000144 6030            str              r0,[r6]
   298 00000146 4770            BX               LR
   299 00000148         
   300 00000148         MOTEUR_GAUCHE_ARRIERE
@@ -581,14 +583,14 @@ ARM Macro Assembler    Page 9
               4000751C 
               4000709C 
               40027400 
-              40027500 
-              4002751C 
 
 
 
 ARM Macro Assembler    Page 10 
 
 
+              40027500 
+              4002751C 
               40027008 
               40028008 
               40007008 
@@ -609,7 +611,7 @@ Relocatable symbols
 
 Symbol: .text
    Definitions
-      At line 66 in file RK_Config_Moteur.s
+      At line 67 in file RK_Config_Moteur.s
    Uses
       None
 Comment: .text unused
@@ -619,7 +621,7 @@ Symbol: MOTEUR_DROIT_ARRIERE
    Definitions
       At line 286 in file RK_Config_Moteur.s
    Uses
-      At line 74 in file RK_Config_Moteur.s
+      At line 75 in file RK_Config_Moteur.s
 Comment: MOTEUR_DROIT_ARRIERE used once
 MOTEUR_DROIT_AVANT 0000013E
 
@@ -627,7 +629,7 @@ Symbol: MOTEUR_DROIT_AVANT
    Definitions
       At line 293 in file RK_Config_Moteur.s
    Uses
-      At line 73 in file RK_Config_Moteur.s
+      At line 74 in file RK_Config_Moteur.s
 Comment: MOTEUR_DROIT_AVANT used once
 MOTEUR_DROIT_INVERSE 0000015C
 
@@ -635,7 +637,7 @@ Symbol: MOTEUR_DROIT_INVERSE
    Definitions
       At line 314 in file RK_Config_Moteur.s
    Uses
-      At line 75 in file RK_Config_Moteur.s
+      At line 76 in file RK_Config_Moteur.s
 Comment: MOTEUR_DROIT_INVERSE used once
 MOTEUR_DROIT_OFF 00000110
 
@@ -643,7 +645,7 @@ Symbol: MOTEUR_DROIT_OFF
    Definitions
       At line 265 in file RK_Config_Moteur.s
    Uses
-      At line 72 in file RK_Config_Moteur.s
+      At line 73 in file RK_Config_Moteur.s
 Comment: MOTEUR_DROIT_OFF used once
 MOTEUR_DROIT_ON 00000104
 
@@ -651,7 +653,7 @@ Symbol: MOTEUR_DROIT_ON
    Definitions
       At line 257 in file RK_Config_Moteur.s
    Uses
-      At line 71 in file RK_Config_Moteur.s
+      At line 72 in file RK_Config_Moteur.s
 Comment: MOTEUR_DROIT_ON used once
 MOTEUR_GAUCHE_ARRIERE 00000148
 
@@ -659,7 +661,7 @@ Symbol: MOTEUR_GAUCHE_ARRIERE
    Definitions
       At line 300 in file RK_Config_Moteur.s
    Uses
-      At line 79 in file RK_Config_Moteur.s
+      At line 80 in file RK_Config_Moteur.s
 Comment: MOTEUR_GAUCHE_ARRIERE used once
 MOTEUR_GAUCHE_AVANT 00000152
 
@@ -673,7 +675,7 @@ Relocatable symbols
    Definitions
       At line 307 in file RK_Config_Moteur.s
    Uses
-      At line 78 in file RK_Config_Moteur.s
+      At line 79 in file RK_Config_Moteur.s
 Comment: MOTEUR_GAUCHE_AVANT used once
 MOTEUR_GAUCHE_INVERSE 00000168
 
@@ -681,7 +683,7 @@ Symbol: MOTEUR_GAUCHE_INVERSE
    Definitions
       At line 322 in file RK_Config_Moteur.s
    Uses
-      At line 80 in file RK_Config_Moteur.s
+      At line 81 in file RK_Config_Moteur.s
 Comment: MOTEUR_GAUCHE_INVERSE used once
 MOTEUR_GAUCHE_OFF 00000128
 
@@ -689,7 +691,7 @@ Symbol: MOTEUR_GAUCHE_OFF
    Definitions
       At line 279 in file RK_Config_Moteur.s
    Uses
-      At line 77 in file RK_Config_Moteur.s
+      At line 78 in file RK_Config_Moteur.s
 Comment: MOTEUR_GAUCHE_OFF used once
 MOTEUR_GAUCHE_ON 0000011C
 
@@ -697,7 +699,7 @@ Symbol: MOTEUR_GAUCHE_ON
    Definitions
       At line 272 in file RK_Config_Moteur.s
    Uses
-      At line 76 in file RK_Config_Moteur.s
+      At line 77 in file RK_Config_Moteur.s
 Comment: MOTEUR_GAUCHE_ON used once
 MOTEUR_INIT 00000000
 
@@ -705,7 +707,7 @@ Symbol: MOTEUR_INIT
    Definitions
       At line 83 in file RK_Config_Moteur.s
    Uses
-      At line 70 in file RK_Config_Moteur.s
+      At line 71 in file RK_Config_Moteur.s
 Comment: MOTEUR_INIT used once
 12 symbols
 
@@ -1080,7 +1082,14 @@ Symbol: VITESSE
       At line 62 in file RK_Config_Moteur.s
    Uses
       At line 161 in file RK_Config_Moteur.s
-      At line 200 in file RK_Config_Moteur.s
+Comment: VITESSE used once
+VITESSE1 00000052
 
-35 symbols
-383 symbols in table
+Symbol: VITESSE1
+   Definitions
+      At line 65 in file RK_Config_Moteur.s
+   Uses
+      At line 200 in file RK_Config_Moteur.s
+Comment: VITESSE1 used once
+36 symbols
+384 symbols in table

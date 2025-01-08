@@ -392,6 +392,16 @@
               <FileType>2</FileType>
               <FilePath>.\main.s</FilePath>
             </File>
+            <File>
+              <FileName>RK_Config_Bumper.s</FileName>
+              <FileType>2</FileType>
+              <FilePath>.\RK_Config_Bumper.s</FilePath>
+            </File>
+            <File>
+              <FileName>RK_Config_Led.s</FileName>
+              <FileType>2</FileType>
+              <FilePath>.\RK_Config_Led.s</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>

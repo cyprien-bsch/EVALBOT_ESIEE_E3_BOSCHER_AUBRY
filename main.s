@@ -23,6 +23,18 @@
 		IMPORT  MOTEUR_GAUCHE_ARRIERE		; moteur gauche tourne vers l'arri�re
 		IMPORT  MOTEUR_GAUCHE_INVERSE		; inverse le sens de rotation du moteur gauche
 
+		IMPORT	BUMPER_INIT
+			
+		IMPORT	LED_CONFIG_ALL
+		IMPORT 	LED_1_ON
+		IMPORT 	LED_2_ON
+		IMPORT 	LED_ALL_ON
+		IMPORT 	LED_1_OFF
+		IMPORT 	LED_2_OFF
+		IMPORT 	LED_ALL_OFF
+
+
+
 ; This register controls the clock gating logic in normal Run mode
 ; SYSCTL_RCGC2_R (p291 datasheet de lm3s9b92.pdf
 
@@ -32,6 +44,7 @@ SYSCTL_PERIPH_GPIOF EQU		0x400FE108
 ; GPIO Port D (APB) base: 0x4002.5000 (p416 datasheet de lm3s9B92.pdf
 
 GPIO_PORTD_BASE		EQU		0x40007000 ;pour les SW (PORT D)
+GPIO_PORTE_BASE		EQU		0x40024000 ;pour les BUMPER
 
 
 
@@ -51,14 +64,25 @@ PORT6				EQU		0x40 ; SW 1  - Lignes 6 Port D
 PORT7				EQU		0x80 ; SW 2  - Lignes 7 Port D
 
 
+; PORT E : selection du BUMPER DROIT, LIGNE 0 du Port E
 
+PORT0				EQU		0x01
+
+; PORT E : selection du BUMPER DROIT, LIGNE 1 du Port E
+
+PORT1               EQU     0x02
+
+
+
+DUREE_SHORT 		EQU 	0x002FFFFF
+							
 __main	
 
 ; Enable the Port D,E and F peripheral clock by setting bit 3,4,5 (0x38 == 0b111000)		
 ;(p291 datasheet de lm3s9B96.pdf), (GPIO::FEDCBA)
 		
 			ldr r6, = SYSCTL_PERIPH_GPIOF  		;; RCGC2
-        	mov r0, #0x00000008  				;; Enable clock sur GPIO D = SW 
+        	mov r0, #0x00000038  				;; Enable clock sur GPIO D = SW 
 			str r0, [r6]
 		
 ;"There must be a delay of 3 system clocks before any GPIO reg. access  (p413 datasheet de lm3s9B92.pdf)
@@ -77,15 +101,17 @@ __main
         	str r0, [r7]
 
 ; Configure les PWM + GPIO
-
+			BL	LED_CONFIG_ALL
+; Config LEDS
 			BL	MOTEUR_INIT	   		   
-		
+			BL 	BUMPER_INIT
 ; Activer les deux moteurs droit et gauche
 
 			BL	MOTEUR_DROIT_OFF
 			BL	MOTEUR_GAUCHE_OFF
 
 loop	
+		
 ; Lire dans R4 l'etat des SW
 			ldr r7,= GPIO_PORTD_BASE + (PORT67<<2)
 			ldr r4, [r7]								
@@ -100,6 +126,10 @@ loop
 			b	loop
 ;Rotation � droite de l'Evalbot		
 rotright	
+			BL	BUMPER_CHECK_GAUCHE
+			BL	BUMPER_CHECK_DROIT
+			BL	LED_2_ON
+			BL	LED_1_OFF
 			BL	MOTEUR_DROIT_ON
 			BL	MOTEUR_GAUCHE_ON
 			BL	MOTEUR_GAUCHE_AVANT
@@ -115,6 +145,10 @@ rotright
 			b	rotright
 ; Rotation � gauche de l'Evalbot		
 rotleft	
+			BL	BUMPER_CHECK_GAUCHE
+			BL	BUMPER_CHECK_DROIT
+			BL	LED_1_ON
+			BL	LED_2_OFF
 			BL	MOTEUR_DROIT_ON
 			BL	MOTEUR_GAUCHE_ON
 			BL	MOTEUR_DROIT_AVANT
@@ -132,6 +166,49 @@ rotleft
 
 			b	rotleft
 			b loop			
-       		END
+       			
+BUMPER_CHECK_DROIT
+			; Etat du BUMPER DROIT
+			ldr r7,= GPIO_PORTE_BASE + (PORT0<<2)
+			ldr r5, [r7]
+
+			cmp	r5,#0x01
+			BNE     CALL_MOTEUR_RECULER_SHORT
+
+			BX	LR
+
+BUMPER_CHECK_GAUCHE
+        ; Etat du BUMPER GAUCHE
+			ldr r9, =  GPIO_PORTE_BASE + (PORT1<<2)
+			ldr r10, [r9]
+			
+			cmp r10, #0x02
+			BNE     CALL_MOTEUR_RECULER_SHORT
+
+			BX	LR
 
 
+CALL_MOTEUR_RECULER_SHORT
+			BL      MOTEUR_RECULER_SHORT       
+			BX      LR                         
+
+
+
+MOTEUR_RECULER_SHORT
+			BL	MOTEUR_DROIT_ON
+			BL	MOTEUR_GAUCHE_ON
+			BL 	MOTEUR_GAUCHE_ARRIERE
+			BL 	MOTEUR_DROIT_ARRIERE
+			BL	LED_ALL_ON
+			ldr r1, =DUREE_SHORT
+			b 	LOOP_SHORT
+
+			BX	LR	
+
+LOOP_SHORT
+			subs 	r1, r1, #1
+			bne 	LOOP_SHORT
+			BL	LED_ALL_OFF
+			B		rotleft	
+		
+			END
