@@ -63,7 +63,11 @@ VITESSE			EQU		0x36	; Valeures plus petites => Vitesse plus rapide exemple 0x192
 								; Valeures plus grandes => Vitesse moins rapide exemple 0x1B2
 
 VITESSE1		EQU		0x52
-						
+
+							
+DUREE_SHORT 		EQU 	0x002FFFFF
+
+
 		AREA    |.text|, CODE, READONLY
 		ENTRY
 		
@@ -79,6 +83,14 @@ VITESSE1		EQU		0x52
 		EXPORT  MOTEUR_GAUCHE_AVANT
 		EXPORT  MOTEUR_GAUCHE_ARRIERE
 		EXPORT  MOTEUR_GAUCHE_INVERSE
+		EXPORT	CALL_MOTEUR_RECULER_SHORT
+		EXPORT	MOTEUR_RECULER_SHORT
+		EXPORT	LOOP_SHORT
+
+
+		IMPORT 	LED_ALL_ON
+		IMPORT 	LED_ALL_OFF
+
 
 MOTEUR_INIT	
 		ldr r6, = SYSCTL_RCGC0
@@ -326,5 +338,39 @@ MOTEUR_GAUCHE_INVERSE
 		EOR	r0, r1, #GPIO_1
 		str	r0,[r6]
 		BX	LR
+
+
+
+
+
+CALL_MOTEUR_RECULER_SHORT
+        push {lr}
+        BL  MOTEUR_RECULER_SHORT       
+        pop {lr}
+        BX  LR                         
+
+MOTEUR_RECULER_SHORT
+        push {lr}
+        BL  MOTEUR_DROIT_ON
+        BL  MOTEUR_GAUCHE_ON
+        BL  MOTEUR_GAUCHE_ARRIERE
+        BL  MOTEUR_DROIT_ARRIERE
+        BL  LED_ALL_ON
+        pop {lr}
+        
+        ldr r1, =DUREE_SHORT
+        b   LOOP_SHORT
+
+LOOP_SHORT
+        subs    r1, r1, #1
+        bne     LOOP_SHORT
+        push {lr}
+        BL  LED_ALL_OFF
+        pop {lr}
+        BX   lr    
+		
+
+
+
 
 		END

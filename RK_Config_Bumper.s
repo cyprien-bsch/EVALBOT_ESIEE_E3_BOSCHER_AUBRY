@@ -48,8 +48,15 @@ PORT1               EQU     0x02
 		ENTRY
 
         EXPORT	BUMPER_INIT
+        EXPORT	BUMPER_CHECK_DROIT
+        EXPORT	BUMPER_CHECK_GAUCHE
 
-        
+
+        IMPORT	CALL_MOTEUR_RECULER_SHORT
+		IMPORT	MOTEUR_RECULER_SHORT
+		IMPORT	LOOP_SHORT
+        IMPORT	rotleft
+		IMPORT	rotright
 
 BUMPER_INIT
         ; Enable Digital Function - Port E
@@ -63,4 +70,24 @@ BUMPER_INIT
         str r0, [r7]
 		BX 	LR
 
+BUMPER_CHECK_DROIT
+        ldr r7,= GPIO_PORTE_BASE + (PORT0<<2)
+        ldr r5, [r7]
+        cmp r5,#0x01
+		BEQ	RETURN
+        bl CALL_MOTEUR_RECULER_SHORT
+        B   rotleft
+
+BUMPER_CHECK_GAUCHE
+        ldr r9, = GPIO_PORTE_BASE + (PORT1<<2)
+        ldr r10, [r9]
+        cmp r10, #0x02
+		BEQ	RETURN
+       	bl CALL_MOTEUR_RECULER_SHORT
+        B   rotright
+
+	
+RETURN
+		BX lr
+        
         END

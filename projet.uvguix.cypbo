@@ -93,8 +93,8 @@
       <flags>2</flags>
       <showCmd>3</showCmd>
       <MinPosition>
-        <xPos>-1</xPos>
-        <yPos>-1</yPos>
+        <xPos>-32000</xPos>
+        <yPos>-32000</yPos>
       </MinPosition>
       <MaxPosition>
         <xPos>-1</xPos>
@@ -3606,27 +3606,27 @@
       <ActiveTab>1</ActiveTab>
       <Doc>
         <Name>.\RK_Config_Moteur.s</Name>
-        <ColumnNumber>3</ColumnNumber>
-        <TopLine>283</TopLine>
-        <CurrentLine>300</CurrentLine>
+        <ColumnNumber>0</ColumnNumber>
+        <TopLine>339</TopLine>
+        <CurrentLine>353</CurrentLine>
         <Folding>1</Folding>
         <ContractedFolders></ContractedFolders>
         <PaneID>0</PaneID>
       </Doc>
       <Doc>
         <Name>.\main.s</Name>
-        <ColumnNumber>15</ColumnNumber>
-        <TopLine>124</TopLine>
-        <CurrentLine>125</CurrentLine>
+        <ColumnNumber>0</ColumnNumber>
+        <TopLine>122</TopLine>
+        <CurrentLine>141</CurrentLine>
         <Folding>1</Folding>
         <ContractedFolders></ContractedFolders>
         <PaneID>0</PaneID>
       </Doc>
       <Doc>
         <Name>.\RK_Config_Bumper.s</Name>
-        <ColumnNumber>22</ColumnNumber>
-        <TopLine>19</TopLine>
-        <CurrentLine>57</CurrentLine>
+        <ColumnNumber>1</ColumnNumber>
+        <TopLine>22</TopLine>
+        <CurrentLine>58</CurrentLine>
         <Folding>1</Folding>
         <ContractedFolders></ContractedFolders>
         <PaneID>0</PaneID>

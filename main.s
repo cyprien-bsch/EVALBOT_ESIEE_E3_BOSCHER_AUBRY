@@ -7,6 +7,8 @@
 		AREA    |.text|, CODE, READONLY
 		ENTRY
 		EXPORT	__main
+		EXPORT	rotleft
+		EXPORT	rotright
 		
 		;; The IMPORT command specifies that a symbol is defined in a shared object at runtime.
 		IMPORT	MOTEUR_INIT					; initialise les moteurs (configure les pwms + GPIO)
@@ -32,7 +34,8 @@
 		IMPORT 	LED_1_OFF
 		IMPORT 	LED_2_OFF
 		IMPORT 	LED_ALL_OFF
-
+        IMPORT	BUMPER_CHECK_DROIT
+        IMPORT	BUMPER_CHECK_GAUCHE
 
 
 ; This register controls the clock gating logic in normal Run mode
@@ -74,7 +77,6 @@ PORT1               EQU     0x02
 
 
 
-DUREE_SHORT 		EQU 	0x002FFFFF
 							
 __main	
 
@@ -110,20 +112,11 @@ __main
 			BL	MOTEUR_DROIT_OFF
 			BL	MOTEUR_GAUCHE_OFF
 
-loop    
-        ldr r7,= GPIO_PORTD_BASE + (PORT67<<2)
-        ldr r4, [r7]                                
-                    
-        cmp r4,#0x80                                
-        beq rotright
-        cmp r4,#0x40                
-        beq rotleft
-        b   loop
+INITIAL_STATE    
+        bl	HANDLE_SWITCH_PRESS
+        b   INITIAL_STATE
 
 rotright    
-
-        BL  BUMPER_CHECK_GAUCHE
-        BL  BUMPER_CHECK_DROIT
         BL  LED_1_ON
         BL  LED_2_OFF
         BL  MOTEUR_DROIT_ON
@@ -131,76 +124,36 @@ rotright
         BL  MOTEUR_GAUCHE_AVANT
         BL  MOTEUR_DROIT_ARRIERE   
 
-
-        ldr r7,= GPIO_PORTD_BASE + (PORT67<<2)
-        ldr r4, [r7]            
-        
-        cmp r4,#0x40    
-        beq rotleft
-        b   rotright
+        b   LOOP
 
 rotleft    
-        BL  BUMPER_CHECK_GAUCHE
-        BL  BUMPER_CHECK_DROIT
         BL  LED_2_ON
         BL  LED_1_OFF
         BL  MOTEUR_DROIT_ON
         BL  MOTEUR_GAUCHE_ON
         BL  MOTEUR_DROIT_AVANT
         BL  MOTEUR_GAUCHE_ARRIERE   
+        b	LOOP
         
-        ldr r7,= GPIO_PORTD_BASE + (PORT67<<2)
-        ldr r4, [r7]            
-        
-        cmp r4,#0x80    
+
+
+LOOP
+		BL  BUMPER_CHECK_GAUCHE
+        BL  BUMPER_CHECK_DROIT
+		BL	HANDLE_SWITCH_PRESS
+		B   LOOP
+
+
+
+HANDLE_SWITCH_PRESS
+		ldr r7,= GPIO_PORTD_BASE + (PORT67<<2)
+        ldr r4, [r7]
+        cmp r4,#0x80                                
         beq rotright
-        b   rotleft
+        cmp r4,#0x40                
+        beq rotleft
+		bx	lr
 
-BUMPER_CHECK_DROIT
-        ldr r7,= GPIO_PORTE_BASE + (PORT0<<2)
-        ldr r5, [r7]
-        cmp r5,#0x01
-		BEQ	RETURN
-        bl CALL_MOTEUR_RECULER_SHORT
-        B   rotleft
 
-BUMPER_CHECK_GAUCHE
-        ldr r9, = GPIO_PORTE_BASE + (PORT1<<2)
-        ldr r10, [r9]
-        cmp r10, #0x02
-		BEQ	RETURN
-       	bl CALL_MOTEUR_RECULER_SHORT
-        B   rotright
 
-CALL_MOTEUR_RECULER_SHORT
-        push {lr}
-        BL  MOTEUR_RECULER_SHORT       
-        pop {lr}
-        BX  LR                         
-
-MOTEUR_RECULER_SHORT
-        push {lr}
-        BL  MOTEUR_DROIT_ON
-        BL  MOTEUR_GAUCHE_ON
-        BL  MOTEUR_GAUCHE_ARRIERE
-        BL  MOTEUR_DROIT_ARRIERE
-        BL  LED_ALL_ON
-        pop {lr}
-        
-        ldr r1, =DUREE_SHORT
-        b   LOOP_SHORT
-
-LOOP_SHORT
-        subs    r1, r1, #1
-        bne     LOOP_SHORT
-        push {lr}
-        BL  LED_ALL_OFF
-        pop {lr}
-        BX   lr    
-		
-		
-		
-RETURN
-		BX lr
-        
 		END
