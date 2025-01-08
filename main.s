@@ -110,105 +110,97 @@ __main
 			BL	MOTEUR_DROIT_OFF
 			BL	MOTEUR_GAUCHE_OFF
 
-loop	
-		
-; Lire dans R4 l'etat des SW
-			ldr r7,= GPIO_PORTD_BASE + (PORT67<<2)
-			ldr r4, [r7]								
-					
-;Test des �tats des switchs
-; Test de l'�tat de SW2			
-			cmp	r4,#0x80								
-			beq rotright
-; Test l'�tat de SW1			
-			cmp r4,#0x40				
-			beq rotleft
-			b	loop
-;Rotation � droite de l'Evalbot		
-rotright	
-			BL	BUMPER_CHECK_GAUCHE
-			BL	BUMPER_CHECK_DROIT
-			BL	LED_2_ON
-			BL	LED_1_OFF
-			BL	MOTEUR_DROIT_ON
-			BL	MOTEUR_GAUCHE_ON
-			BL	MOTEUR_GAUCHE_AVANT
-			BL	MOTEUR_DROIT_ARRIERE   
+loop    
+        ldr r7,= GPIO_PORTD_BASE + (PORT67<<2)
+        ldr r4, [r7]                                
+                    
+        cmp r4,#0x80                                
+        beq rotright
+        cmp r4,#0x40                
+        beq rotleft
+        b   loop
 
-; Lire dans R4 l'etat des SW	
-			ldr r7,= GPIO_PORTD_BASE + (PORT67<<2)
-			ldr r4, [r7]			
-			
-;Test de l'�tat de SW1
-			cmp r4,#0x40	
-			beq rotleft
-			b	rotright
-; Rotation � gauche de l'Evalbot		
-rotleft	
-			BL	BUMPER_CHECK_GAUCHE
-			BL	BUMPER_CHECK_DROIT
-			BL	LED_1_ON
-			BL	LED_2_OFF
-			BL	MOTEUR_DROIT_ON
-			BL	MOTEUR_GAUCHE_ON
-			BL	MOTEUR_DROIT_AVANT
-			BL	MOTEUR_GAUCHE_ARRIERE   
-		
-			ldr r7,= GPIO_PORTD_BASE + (PORT67<<2)
+rotright    
 
-; Lire dans R4 l'etat des SW
-			ldr r4, [r7]			
-		
-;Test de l'�tat de SW2
-			
-			cmp r4,#0x80	
-			beq rotright
+        BL  BUMPER_CHECK_GAUCHE
+        BL  BUMPER_CHECK_DROIT
+        BL  LED_1_ON
+        BL  LED_2_OFF
+        BL  MOTEUR_DROIT_ON
+        BL  MOTEUR_GAUCHE_ON
+        BL  MOTEUR_GAUCHE_AVANT
+        BL  MOTEUR_DROIT_ARRIERE   
 
-			b	rotleft
-			b loop			
-       			
+
+        ldr r7,= GPIO_PORTD_BASE + (PORT67<<2)
+        ldr r4, [r7]            
+        
+        cmp r4,#0x40    
+        beq rotleft
+        b   rotright
+
+rotleft    
+        BL  BUMPER_CHECK_GAUCHE
+        BL  BUMPER_CHECK_DROIT
+        BL  LED_2_ON
+        BL  LED_1_OFF
+        BL  MOTEUR_DROIT_ON
+        BL  MOTEUR_GAUCHE_ON
+        BL  MOTEUR_DROIT_AVANT
+        BL  MOTEUR_GAUCHE_ARRIERE   
+        
+        ldr r7,= GPIO_PORTD_BASE + (PORT67<<2)
+        ldr r4, [r7]            
+        
+        cmp r4,#0x80    
+        beq rotright
+        b   rotleft
+
 BUMPER_CHECK_DROIT
-			; Etat du BUMPER DROIT
-			ldr r7,= GPIO_PORTE_BASE + (PORT0<<2)
-			ldr r5, [r7]
-
-			cmp	r5,#0x01
-			BNE     CALL_MOTEUR_RECULER_SHORT
-
-			BX	LR
+        ldr r7,= GPIO_PORTE_BASE + (PORT0<<2)
+        ldr r5, [r7]
+        cmp r5,#0x01
+		BEQ	RETURN
+        bl CALL_MOTEUR_RECULER_SHORT
+        B   rotleft
 
 BUMPER_CHECK_GAUCHE
-        ; Etat du BUMPER GAUCHE
-			ldr r9, =  GPIO_PORTE_BASE + (PORT1<<2)
-			ldr r10, [r9]
-			
-			cmp r10, #0x02
-			BNE     CALL_MOTEUR_RECULER_SHORT
-
-			BX	LR
-
+        ldr r9, = GPIO_PORTE_BASE + (PORT1<<2)
+        ldr r10, [r9]
+        cmp r10, #0x02
+		BEQ	RETURN
+       	bl CALL_MOTEUR_RECULER_SHORT
+        B   rotright
 
 CALL_MOTEUR_RECULER_SHORT
-			BL      MOTEUR_RECULER_SHORT       
-			BX      LR                         
-
-
+        push {lr}
+        BL  MOTEUR_RECULER_SHORT       
+        pop {lr}
+        BX  LR                         
 
 MOTEUR_RECULER_SHORT
-			BL	MOTEUR_DROIT_ON
-			BL	MOTEUR_GAUCHE_ON
-			BL 	MOTEUR_GAUCHE_ARRIERE
-			BL 	MOTEUR_DROIT_ARRIERE
-			BL	LED_ALL_ON
-			ldr r1, =DUREE_SHORT
-			b 	LOOP_SHORT
-
-			BX	LR	
+        push {lr}
+        BL  MOTEUR_DROIT_ON
+        BL  MOTEUR_GAUCHE_ON
+        BL  MOTEUR_GAUCHE_ARRIERE
+        BL  MOTEUR_DROIT_ARRIERE
+        BL  LED_ALL_ON
+        pop {lr}
+        
+        ldr r1, =DUREE_SHORT
+        b   LOOP_SHORT
 
 LOOP_SHORT
-			subs 	r1, r1, #1
-			bne 	LOOP_SHORT
-			BL	LED_ALL_OFF
-			B		rotleft	
+        subs    r1, r1, #1
+        bne     LOOP_SHORT
+        push {lr}
+        BL  LED_ALL_OFF
+        pop {lr}
+        BX   lr    
 		
-			END
+		
+		
+RETURN
+		BX lr
+        
+		END
