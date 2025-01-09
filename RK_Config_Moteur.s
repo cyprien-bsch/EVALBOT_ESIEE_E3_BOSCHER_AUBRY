@@ -90,9 +90,11 @@ DUREE_SHORT 		EQU 	0x002FFFFF
 
 		IMPORT 	LED_ALL_ON
 		IMPORT 	LED_ALL_OFF
+		IMPORT	ENABLE_STACK_SYSCTL_RCGC2
 
 
 MOTEUR_INIT	
+		push	{lr}
 		ldr r6, = SYSCTL_RCGC0
 		ldr	r0, [R6]
         ORR	r0, r0, #0x00100000  ;;bit 20 = PWM recoit clock: ON (p271) 
@@ -103,21 +105,16 @@ MOTEUR_INIT
 	;*(int *) (0x400FE060)= *(int *)(0x400FE060)...;
 	
   	;RCGC2 :  Enable port D GPIO(p291 ) car Moteur Droit sur port D 
-		ldr r6, = SYSCTL_RCGC2
-		ldr	r0, [R6] 		
-        ORR	r0, r0, #0x08  ;; Enable port D GPIO 
-        str r0, [r6]
+		mov r0, #0x08  				;; Enable clock sur GPIO D
+        push {r0}
+        BL	ENABLE_STACK_SYSCTL_RCGC2
 
 	;MOT2 : RCGC2 :  Enable port H GPIO  (2eme moteurs)
-		ldr r6, = SYSCTL_RCGC2
-		ldr	r0, [R6] 
-        ORR	r0, r0, #0x80  ;; Enable port H GPIO 
-        str r0, [r6] 
-		
-		nop
-		nop
-		nop
-	 
+		mov r0, #0x80  				;; Enable clock sur GPIO H
+        push {r0}
+        BL	ENABLE_STACK_SYSCTL_RCGC2
+
+
 	;;Pin muxing pour PWM, port D, reg. GPIOPCTL(p444), 4bits de PCM0=0001<=>PWM (voir p1261)
 	;;il faut mettre 1 pour avoir PD0=PWM0 et PD1=PWM1
 		ldr r6, = GPIOPCTL_D
@@ -261,6 +258,7 @@ MOTEUR_INIT
 		mov	r0, #0x02
 		str	r0,[r6]		
 		
+		pop	{lr}
 		BX	LR	; FIN du sous programme d'init.
 
 ;Enable PWM0 (bit 0) et PWM2 (bit 2) p1145 
@@ -369,8 +367,4 @@ LOOP_SHORT
         pop {lr}
         BX   lr    
 		
-
-
-
-
 		END

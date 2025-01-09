@@ -54,27 +54,19 @@ DUREE   			EQU     0x002FFFFF
 		EXPORT LED_2_OFF
 		EXPORT LED_ALL_OFF
 
+		IMPORT	ENABLE_STACK_SYSCTL_RCGC2
+
 		; Il faut appeler BLINK après une config
 		; Il faut à chaque fois refaire la config
 		; Ex : (LED1_CONFIG + BLINK ||LED_CONFIG_ALL + BLINK)
 
 LED_CONFIG_ALL
-
-		; ;; Enable the Port F & D peripheral clock 		(p291 datasheet de lm3s9B96.pdf)
-		; ;;									
-		ldr r6, = SYSCTL_RCGC2      			;; RCGC2
-		ldr r0, [R6]
-		
-        mov r1, #0x00000028  					;; Enable clock sur GPIO D et F o� sont branch�s les leds (0x28 == 0b101000)
-		orr r0, r1
-		; ;;														 									      (GPIO::FEDCBA)
-        str r0, [r6]
-		
-		; ;; "There must be a delay of 3 system clocks before any GPIO reg. access  (p413 datasheet de lm3s9B92.pdf)
-		nop	   									;; tres tres important....
-		nop	   
-		nop	   									;; pas necessaire en simu ou en debbug step by step...
-	
+        push {lr}
+		; ;; Enable the Port F & D peripheral clock 		(p291 datasheet de lm3s9B96.pdf)	
+        mov r0, #0x00000028  				;; Enable clock sur GPIO F & D sur lesquels sont branchés les leds
+        push {r0}
+        BL	ENABLE_STACK_SYSCTL_RCGC2
+        	
 		;CONFIGURATION LED
 
         ldr r6, = GPIO_PORTF_BASE+GPIO_O_DIR    ;; 1 Pin du portF en sortie (broche 4 : 00010000)
@@ -88,16 +80,11 @@ LED_CONFIG_ALL
 		ldr r6, = GPIO_PORTF_BASE+GPIO_O_DR2R	;; Choix de l'intensit� de sortie (2mA)
         ldr r0, = BROCHE4_5			
         str r0, [r6]
-		
-		 mov r2, #0x000       					;; pour eteindre LED
-     
-		; allumer la led broche 4 (BROCHE4_5)
-		mov r3, #BROCHE4_5		;; Allume LED1&2 portF broche 4&5 : 00110000
-		
-		ldr r6, = GPIO_PORTF_BASE + (BROCHE4_5<<2)  ;; @data Register = @base + (mask<<2) ==> LED1
-		;vvvvvvvvvvvvvvvvvvvvvvvFin configuration LED 
-		
 
+		ldr r6, = GPIO_PORTF_BASE + (BROCHE4_5<<2)  ;; @data Register = @base + (mask<<2) ==> LED1
+		;Fin configuration LED 
+		
+        pop {lr}
 		BX LR
 
 LED1_CONFIG

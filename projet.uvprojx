@@ -402,6 +402,16 @@
               <FileType>2</FileType>
               <FilePath>.\RK_Config_Led.s</FilePath>
             </File>
+            <File>
+              <FileName>RK_Config_Switch.s</FileName>
+              <FileType>2</FileType>
+              <FilePath>.\RK_Config_Switch.s</FilePath>
+            </File>
+            <File>
+              <FileName>utils.s</FileName>
+              <FileType>2</FileType>
+              <FilePath>.\utils.s</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>

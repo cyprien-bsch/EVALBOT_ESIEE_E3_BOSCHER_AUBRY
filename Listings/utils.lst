@@ -1,0 +1,81 @@
+
+
+
+ARM Macro Assembler    Page 1 
+
+
+    1 00000000         
+    2 00000000                 AREA             |.text|, CODE, READONLY
+    3 00000000                 ENTRY
+    4 00000000         
+    5 00000000                 EXPORT           ENABLE_STACK_SYSCTL_RCGC2
+    6 00000000         
+    7 00000000         
+    8 00000000         ; This register controls the clock gating logic in norma
+                       l Run mode
+    9 00000000 400FE108 
+                       SYSCTL_RCGC2
+                               EQU              0x400FE108  ; SYSCTL_RCGC2_R (p
+                                                            291 datasheet de lm
+                                                            3s9b92.pdf)
+   10 00000000         
+   11 00000000         
+   12 00000000         ENABLE_STACK_SYSCTL_RCGC2
+   13 00000000 BC02            pop              {r1}
+   14 00000002 4E04            ldr              r6, = SYSCTL_RCGC2 ;; RCGC2
+   15 00000004 6830            ldr              r0, [r6]
+   16 00000006 EA40 0001       orr              r0, r1
+   17 0000000A 6030            str              r0, [r6]
+   18 0000000C BF00            nop                          ;; tres tres import
+                                                            ant....
+   19 0000000E BF00            nop
+   20 00000010 BF00            nop
+   21 00000012 4770            bx               lr
+   22 00000014         
+   23 00000014                 END
+              400FE108 
+Command Line: --debug --xref --diag_suppress=9931 --cpu=Cortex-M3 --apcs=interw
+ork --depend=.\objects\utils.d -o.\objects\utils.o -I.\RTE\_Target_1 -IC:\Users
+\cypbo\AppData\Local\Arm\Packs\ARM\CMSIS\5.5.1\CMSIS\Core\Include -IC:\Users\cy
+pbo\AppData\Local\Arm\Packs\ARM\CMSIS\5.5.1\Device\ARM\ARMCM3\Include --predefi
+ne="__EVAL SETA 1" --predefine="__UVISION_VERSION SETA 528" --predefine="_RTE_ 
+SETA 1" --predefine="ARMCM3 SETA 1" --list=.\listings\utils.lst utils.s
+
+
+
+ARM Macro Assembler    Page 1 Alphabetic symbol ordering
+Relocatable symbols
+
+.text 00000000
+
+Symbol: .text
+   Definitions
+      At line 2 in file utils.s
+   Uses
+      None
+Comment: .text unused
+ENABLE_STACK_SYSCTL_RCGC2 00000000
+
+Symbol: ENABLE_STACK_SYSCTL_RCGC2
+   Definitions
+      At line 12 in file utils.s
+   Uses
+      At line 5 in file utils.s
+Comment: ENABLE_STACK_SYSCTL_RCGC2 used once
+2 symbols
+
+
+
+ARM Macro Assembler    Page 1 Alphabetic symbol ordering
+Absolute symbols
+
+SYSCTL_RCGC2 400FE108
+
+Symbol: SYSCTL_RCGC2
+   Definitions
+      At line 9 in file utils.s
+   Uses
+      At line 14 in file utils.s
+Comment: SYSCTL_RCGC2 used once
+1 symbol
+339 symbols in table

@@ -1,0 +1,226 @@
+
+
+
+ARM Macro Assembler    Page 1 
+
+
+    1 00000000         
+    2 00000000                 AREA             |.text|, CODE, READONLY
+    3 00000000                 ENTRY
+    4 00000000         
+    5 00000000                 EXPORT           SWITCH_INIT
+    6 00000000                 EXPORT           HANDLE_SWITCH_PRESS
+    7 00000000         
+    8 00000000         
+    9 00000000                 IMPORT           ENABLE_STACK_SYSCTL_RCGC2
+   10 00000000                 IMPORT           rotright
+   11 00000000                 IMPORT           rotleft
+   12 00000000         
+   13 00000000         
+   14 00000000 40007000 
+                       GPIO_PORTD_BASE
+                               EQU              0x40007000  ;pour les SW (PORT 
+                                                            D)
+   15 00000000         ; Digital enable register
+   16 00000000         ; To use the pin as a digital input or output, the corre
+                       sponding GPIODEN bit must be set.
+   17 00000000         ; GPIO Digital Enable (p437 datasheet de lm3s9B92.pdf)
+   18 00000000 0000051C 
+                       GPIO_O_DEN
+                               EQU              0x0000051C
+   19 00000000         ; Pull up Register (for SW or BUMP)
+   20 00000000 00000510 
+                       GPIO_O_PUR
+                               EQU              0x00000510
+   21 00000000         
+   22 00000000         
+   23 00000000         
+   24 00000000 000000C0 
+                       PORT67  EQU              0xC0        ; SW 1 et 2 - Ligne
+                                                            s 6 et 7 Port D
+   25 00000000 00000040 
+                       PORT6   EQU              0x40        ; SW 1  - Lignes 6 
+                                                            Port D
+   26 00000000 00000080 
+                       PORT7   EQU              0x80        ; SW 2  - Lignes 7 
+                                                            Port D
+   27 00000000         
+   28 00000000         
+   29 00000000         
+   30 00000000         SWITCH_INIT
+   31 00000000 B500            push             {lr}
+   32 00000002         ; Enable the Port D,E and F peripheral clock by setting 
+                       bit 3,4,5 (0x38 == 0b111000)  
+   33 00000002         ;(p291 datasheet de lm3s9B96.pdf), (GPIO::FEDCBA)
+   34 00000002 F04F 0008       mov              r0, #0x00000008 ;; Enable clock
+                                                             sur GPIO D = SW 
+   35 00000006 B401            push             {r0}
+   36 00000008 F7FF FFFE       BL               ENABLE_STACK_SYSCTL_RCGC2
+   37 0000000C         
+   38 0000000C         ;Configuration des switchs : SW1 et SW2
+   39 0000000C 4F09            ldr              r7, = GPIO_PORTD_BASE+GPIO_O_DE
+N 
+                                                            ;; Enable Digital F
+                                                            unction 
+   40 0000000E F04F 00C0       ldr              r0, = PORT67
+
+
+
+ARM Macro Assembler    Page 2 
+
+
+   41 00000012 6038            str              r0, [r7]
+   42 00000014         
+   43 00000014 4F08            ldr              r7, = GPIO_PORTD_BASE+GPIO_O_PU
+R 
+                                                            ;; Pull Up Function
+                                                            
+   44 00000016 F04F 00C0       ldr              r0, = PORT67
+   45 0000001A 6038            str              r0, [r7]
+   46 0000001C F85D EB04       pop              {lr}
+   47 00000020 4770            BX               lr
+   48 00000022         
+   49 00000022         HANDLE_SWITCH_PRESS
+   50 00000022 4F06            ldr              r7,= GPIO_PORTD_BASE + (PORT67<
+<2)
+   51 00000024 683C            ldr              r4, [r7]
+   52 00000026 2C80            cmp              r4, #PORT7
+   53 00000028 F43F AFFE       beq              rotright
+   54 0000002C 2C40            cmp              r4, #PORT6
+   55 0000002E F43F AFFE       beq              rotleft
+   56 00000032 4770            bx               lr
+   57 00000034         
+   58 00000034         
+   59 00000034                 END
+              4000751C 
+              40007510 
+              40007300 
+Command Line: --debug --xref --diag_suppress=9931 --cpu=Cortex-M3 --apcs=interw
+ork --depend=.\objects\rk_config_switch.d -o.\objects\rk_config_switch.o -I.\RT
+E\_Target_1 -IC:\Users\cypbo\AppData\Local\Arm\Packs\ARM\CMSIS\5.5.1\CMSIS\Core
+\Include -IC:\Users\cypbo\AppData\Local\Arm\Packs\ARM\CMSIS\5.5.1\Device\ARM\AR
+MCM3\Include --predefine="__EVAL SETA 1" --predefine="__UVISION_VERSION SETA 52
+8" --predefine="_RTE_ SETA 1" --predefine="ARMCM3 SETA 1" --list=.\listings\rk_
+config_switch.lst RK_Config_Switch.s
+
+
+
+ARM Macro Assembler    Page 1 Alphabetic symbol ordering
+Relocatable symbols
+
+.text 00000000
+
+Symbol: .text
+   Definitions
+      At line 2 in file RK_Config_Switch.s
+   Uses
+      None
+Comment: .text unused
+HANDLE_SWITCH_PRESS 00000022
+
+Symbol: HANDLE_SWITCH_PRESS
+   Definitions
+      At line 49 in file RK_Config_Switch.s
+   Uses
+      At line 6 in file RK_Config_Switch.s
+Comment: HANDLE_SWITCH_PRESS used once
+SWITCH_INIT 00000000
+
+Symbol: SWITCH_INIT
+   Definitions
+      At line 30 in file RK_Config_Switch.s
+   Uses
+      At line 5 in file RK_Config_Switch.s
+Comment: SWITCH_INIT used once
+3 symbols
+
+
+
+ARM Macro Assembler    Page 1 Alphabetic symbol ordering
+Absolute symbols
+
+GPIO_O_DEN 0000051C
+
+Symbol: GPIO_O_DEN
+   Definitions
+      At line 18 in file RK_Config_Switch.s
+   Uses
+      At line 39 in file RK_Config_Switch.s
+Comment: GPIO_O_DEN used once
+GPIO_O_PUR 00000510
+
+Symbol: GPIO_O_PUR
+   Definitions
+      At line 20 in file RK_Config_Switch.s
+   Uses
+      At line 43 in file RK_Config_Switch.s
+Comment: GPIO_O_PUR used once
+GPIO_PORTD_BASE 40007000
+
+Symbol: GPIO_PORTD_BASE
+   Definitions
+      At line 14 in file RK_Config_Switch.s
+   Uses
+      At line 39 in file RK_Config_Switch.s
+      At line 43 in file RK_Config_Switch.s
+      At line 50 in file RK_Config_Switch.s
+
+PORT6 00000040
+
+Symbol: PORT6
+   Definitions
+      At line 25 in file RK_Config_Switch.s
+   Uses
+      At line 54 in file RK_Config_Switch.s
+Comment: PORT6 used once
+PORT67 000000C0
+
+Symbol: PORT67
+   Definitions
+      At line 24 in file RK_Config_Switch.s
+   Uses
+      At line 40 in file RK_Config_Switch.s
+      At line 44 in file RK_Config_Switch.s
+      At line 50 in file RK_Config_Switch.s
+
+PORT7 00000080
+
+Symbol: PORT7
+   Definitions
+      At line 26 in file RK_Config_Switch.s
+   Uses
+      At line 52 in file RK_Config_Switch.s
+Comment: PORT7 used once
+6 symbols
+
+
+
+ARM Macro Assembler    Page 1 Alphabetic symbol ordering
+External symbols
+
+ENABLE_STACK_SYSCTL_RCGC2 00000000
+
+Symbol: ENABLE_STACK_SYSCTL_RCGC2
+   Definitions
+      At line 9 in file RK_Config_Switch.s
+   Uses
+      At line 36 in file RK_Config_Switch.s
+Comment: ENABLE_STACK_SYSCTL_RCGC2 used once
+rotleft 00000000
+
+Symbol: rotleft
+   Definitions
+      At line 11 in file RK_Config_Switch.s
+   Uses
+      At line 55 in file RK_Config_Switch.s
+Comment: rotleft used once
+rotright 00000000
+
+Symbol: rotright
+   Definitions
+      At line 10 in file RK_Config_Switch.s
+   Uses
+      At line 53 in file RK_Config_Switch.s
+Comment: rotright used once
+3 symbols
+348 symbols in table

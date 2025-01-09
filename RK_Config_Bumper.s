@@ -1,7 +1,5 @@
 
-; This register controls the clock gating logic in normal Run ;mode SYSCTL_RCGC2_R (p291 datasheet de lm3s9b92.pdf
 
-SYSCTL_PERIPH_GPIOF EQU		0x400FE108
 
 ; The GPIODATA register is the data register
 ; GPIO Port F (APB) base: 0x4002.5000 (p416 datasheet de ;lm3s9B92.pdf
@@ -57,8 +55,16 @@ PORT1               EQU     0x02
 		IMPORT	LOOP_SHORT
         IMPORT	rotleft
 		IMPORT	rotright
+		IMPORT	ENABLE_STACK_SYSCTL_RCGC2
 
 BUMPER_INIT
+
+        push {lr}
+        mov r0, #0x00000010  				;; Enable clock sur GPIO E
+        push {r0}
+        BL	ENABLE_STACK_SYSCTL_RCGC2
+
+
         ; Enable Digital Function - Port E
 		ldr r7, = GPIO_PORTE_BASE+GPIO_O_DEN	
         ldr r0, = PORT01		
@@ -68,7 +74,8 @@ BUMPER_INIT
 		ldr r7, = GPIO_PORTE_BASE+GPIO_PUR	
         ldr r0, = PORT01
         str r0, [r7]
-		BX 	LR
+		pop {lr}
+        BX  lr
 
 BUMPER_CHECK_DROIT
         ldr r7,= GPIO_PORTE_BASE + (PORT0<<2)

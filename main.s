@@ -25,6 +25,8 @@
 		IMPORT  MOTEUR_GAUCHE_ARRIERE		; moteur gauche tourne vers l'arri�re
 		IMPORT  MOTEUR_GAUCHE_INVERSE		; inverse le sens de rotation du moteur gauche
 
+		IMPORT	SWITCH_INIT
+
 		IMPORT	BUMPER_INIT
 			
 		IMPORT	LED_CONFIG_ALL
@@ -37,34 +39,14 @@
         IMPORT	BUMPER_CHECK_DROIT
         IMPORT	BUMPER_CHECK_GAUCHE
 
+        IMPORT	HANDLE_SWITCH_PRESS
+
+
 
 ; This register controls the clock gating logic in normal Run mode
 ; SYSCTL_RCGC2_R (p291 datasheet de lm3s9b92.pdf
 
 SYSCTL_PERIPH_GPIOF EQU		0x400FE108
-
-; The GPIODATA register is the data register
-; GPIO Port D (APB) base: 0x4002.5000 (p416 datasheet de lm3s9B92.pdf
-
-GPIO_PORTD_BASE		EQU		0x40007000 ;pour les SW (PORT D)
-GPIO_PORTE_BASE		EQU		0x40024000 ;pour les BUMPER
-
-
-
-; Digital enable register
-; To use the pin as a digital input or output, the corresponding GPIODEN bit must be set.
-; GPIO Digital Enable (p437 datasheet de lm3s9B92.pdf)
-
-GPIO_O_DEN   		EQU 	0x0000051C  
-
-; Pull up Register (for SW or BUMP)
-GPIO_O_PUR			EQU		0x00000510
-
-; Port select
-
-PORT67				EQU		0xC0 ; SW 1 et 2 - Lignes 6 et 7 Port D
-PORT6				EQU		0x40 ; SW 1  - Lignes 6 Port D
-PORT7				EQU		0x80 ; SW 2  - Lignes 7 Port D
 
 
 ; PORT E : selection du BUMPER DROIT, LIGNE 0 du Port E
@@ -75,42 +57,13 @@ PORT0				EQU		0x01
 
 PORT1               EQU     0x02
 
-
-
 							
 __main	
+		BL	SWITCH_INIT
+		BL	LED_CONFIG_ALL
+		BL	MOTEUR_INIT	   		   
+		BL 	BUMPER_INIT
 
-; Enable the Port D,E and F peripheral clock by setting bit 3,4,5 (0x38 == 0b111000)		
-;(p291 datasheet de lm3s9B96.pdf), (GPIO::FEDCBA)
-		
-			ldr r6, = SYSCTL_PERIPH_GPIOF  		;; RCGC2
-        	mov r0, #0x00000038  				;; Enable clock sur GPIO D = SW 
-			str r0, [r6]
-		
-;"There must be a delay of 3 system clocks before any GPIO reg. access  (p413 datasheet de lm3s9B92.pdf)
-;tres tres important....;; pas necessaire en simu ou en debbug step by step...
-			nop	   									
-			nop	   
-			nop	   	
-
-;Configuration des switchs : SW1 et SW2
-        	ldr	r7, = GPIO_PORTD_BASE+GPIO_O_DEN		;; Enable Digital Function 
-        	ldr r0, = PORT67 		
-        	str r0, [r7]
-			
-			ldr	r7, = GPIO_PORTD_BASE+GPIO_O_PUR		;; Pull Up Function
-        	ldr r0, = PORT67	
-        	str r0, [r7]
-
-; Configure les PWM + GPIO
-			BL	LED_CONFIG_ALL
-; Config LEDS
-			BL	MOTEUR_INIT	   		   
-			BL 	BUMPER_INIT
-; Activer les deux moteurs droit et gauche
-
-			BL	MOTEUR_DROIT_OFF
-			BL	MOTEUR_GAUCHE_OFF
 
 INITIAL_STATE    
         bl	HANDLE_SWITCH_PRESS
@@ -133,27 +86,13 @@ rotleft
         BL  MOTEUR_GAUCHE_ON
         BL  MOTEUR_DROIT_AVANT
         BL  MOTEUR_GAUCHE_ARRIERE   
-        b	LOOP
-        
-
+        b	LOOP     
 
 LOOP
 		BL  BUMPER_CHECK_GAUCHE
         BL  BUMPER_CHECK_DROIT
 		BL	HANDLE_SWITCH_PRESS
 		B   LOOP
-
-
-
-HANDLE_SWITCH_PRESS
-		ldr r7,= GPIO_PORTD_BASE + (PORT67<<2)
-        ldr r4, [r7]
-        cmp r4,#0x80                                
-        beq rotright
-        cmp r4,#0x40                
-        beq rotleft
-		bx	lr
-
 
 
 		END
