@@ -92,6 +92,9 @@ DUREE_SHORT 		EQU 	0x002FFFFF
 
 		IMPORT 	LED_ALL_ON
 		IMPORT 	LED_ALL_OFF
+        IMPORT 	LED_ETHERNET_ALL_ON
+        IMPORT 	LED_ETHERNET_ALL_OFF
+
 		IMPORT	ENABLE_STACK_SYSCTL_RCGC2
 
 
@@ -352,7 +355,7 @@ MOTEUR_RECULER_SHORT
 		BL	TRAJECTORY_STRAIGHT
         BL  MOTEUR_GAUCHE_ARRIERE
         BL  MOTEUR_DROIT_ARRIERE
-        BL  LED_ALL_ON
+        BL  LED_ETHERNET_ALL_ON
         pop {lr}
         
         ldr r1, =DUREE_SHORT
@@ -362,7 +365,7 @@ LOOP_SHORT
         subs    r1, r1, #1
         bne     LOOP_SHORT
         push {lr}
-        BL  LED_ALL_OFF
+        BL  LED_ETHERNET_ALL_OFF
         pop {lr}
         BX   lr  
 
