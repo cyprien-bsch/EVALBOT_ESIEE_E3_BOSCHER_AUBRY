@@ -40,7 +40,8 @@
         IMPORT	BUMPER_CHECK_GAUCHE
 
         IMPORT	HANDLE_SWITCH_PRESS
-
+		IMPORT	TRAJECTORY_LEFT
+		IMPORT	TRAJECTORY_RIGHT
 
 
 ; This register controls the clock gating logic in normal Run mode
@@ -75,8 +76,8 @@ rotright
         BL  MOTEUR_DROIT_ON
         BL  MOTEUR_GAUCHE_ON
         BL  MOTEUR_GAUCHE_AVANT
-        BL  MOTEUR_DROIT_ARRIERE   
-
+        BL  MOTEUR_DROIT_AVANT 
+		BL	TRAJECTORY_RIGHT
         b   LOOP
 
 rotleft    
@@ -85,7 +86,8 @@ rotleft
         BL  MOTEUR_DROIT_ON
         BL  MOTEUR_GAUCHE_ON
         BL  MOTEUR_DROIT_AVANT
-        BL  MOTEUR_GAUCHE_ARRIERE   
+        BL  MOTEUR_GAUCHE_AVANT 
+		BL	TRAJECTORY_LEFT
         b	LOOP     
 
 LOOP

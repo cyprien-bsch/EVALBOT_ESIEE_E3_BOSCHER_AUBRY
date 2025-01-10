@@ -59,10 +59,10 @@ PWM1GENA		EQU		PWM_BASE+0x0A0
 PWM1GENB		EQU		PWM_BASE+0x0A4
 
 
-VITESSE			EQU		0x36	; Valeures plus petites => Vitesse plus rapide exemple 0x192
+NORMAL_SPEED			EQU		0x05	; Valeures plus petites => Vitesse plus rapide exemple 0x192
 								; Valeures plus grandes => Vitesse moins rapide exemple 0x1B2
 
-VITESSE1		EQU		0x52
+LOW_SPEED		EQU		0xFF
 
 							
 DUREE_SHORT 		EQU 	0x002FFFFF
@@ -86,6 +86,8 @@ DUREE_SHORT 		EQU 	0x002FFFFF
 		EXPORT	CALL_MOTEUR_RECULER_SHORT
 		EXPORT	MOTEUR_RECULER_SHORT
 		EXPORT	LOOP_SHORT
+		EXPORT	TRAJECTORY_LEFT
+		EXPORT	TRAJECTORY_RIGHT
 
 
 		IMPORT 	LED_ALL_ON
@@ -167,7 +169,7 @@ MOTEUR_INIT
 		str	r0,[r6]
 		
 		ldr	r6, =PWM0CMPA ;Valeur rapport cyclique : pour 10% => 1C2h si clock = 0F42400
-		mov	r0, #VITESSE
+		mov	r0, #NORMAL_SPEED
 		str	r0, [r6]  
 		
 		ldr	r6, =PWM0CMPB ;PWM0CMPB recoit meme valeur. (rapport cyclique depend de CMPA)
@@ -206,7 +208,7 @@ MOTEUR_INIT
 		str	r0,[r6]
 		
 		ldr	r6, =PWM1CMPA ;Valeur rapport cyclique : pour 10% => 1C2h si clock = 0F42400
-		mov	r0,	#VITESSE1
+		mov	r0,	#LOW_SPEED
 		str	r0, [r6]  ;*(int *)(0x40028000+0x058)=0x01C2;
 		
 		ldr	r6, =PWM1CMPB ;PWM0CMPB recoit meme valeur. (CMPA depend du rapport cyclique)
@@ -337,10 +339,6 @@ MOTEUR_GAUCHE_INVERSE
 		str	r0,[r6]
 		BX	LR
 
-
-
-
-
 CALL_MOTEUR_RECULER_SHORT
         push {lr}
         BL  MOTEUR_RECULER_SHORT       
@@ -351,6 +349,7 @@ MOTEUR_RECULER_SHORT
         push {lr}
         BL  MOTEUR_DROIT_ON
         BL  MOTEUR_GAUCHE_ON
+		BL	TRAJECTORY_STRAIGHT
         BL  MOTEUR_GAUCHE_ARRIERE
         BL  MOTEUR_DROIT_ARRIERE
         BL  LED_ALL_ON
@@ -365,6 +364,57 @@ LOOP_SHORT
         push {lr}
         BL  LED_ALL_OFF
         pop {lr}
-        BX   lr    
-		
+        BX   lr  
+
+SET_SPEED
+		pop {r6} ; Adress speed
+		pop	{r0} ; Speed value
+		str	r0, [r6]
+		bx	lr
+
+TRAJECTORY_LEFT
+		push {lr}
+		mov r0, #LOW_SPEED
+		push {r0}
+		ldr r0, =PWM1CMPA
+		push {r0}
+		BL  SET_SPEED
+		mov r0, #NORMAL_SPEED
+		push {r0} 
+		ldr r0, =PWM0CMPA
+		push {r0}
+		BL  SET_SPEED
+		pop {lr}
+		BX  lr
+ 
+TRAJECTORY_RIGHT
+		push {lr}
+		mov r0, #LOW_SPEED
+		push {r0}
+		ldr r0, =PWM0CMPA 
+		push {r0}
+		BL  SET_SPEED
+		mov r0, #NORMAL_SPEED
+		push {r0}
+		ldr r0, =PWM1CMPA
+		push {r0}
+		BL  SET_SPEED
+		pop {lr}
+		BX  lr
+
+TRAJECTORY_STRAIGHT
+		push {lr}
+		mov r0, #NORMAL_SPEED
+		push {r0}
+		ldr r0, =PWM0CMPA 
+		push {r0}
+		BL  SET_SPEED
+		mov r0, #NORMAL_SPEED
+		push {r0}
+		ldr r0, =PWM1CMPA
+		push {r0}
+		BL  SET_SPEED
+		pop {lr}
+		BX  lr
+
 		END
