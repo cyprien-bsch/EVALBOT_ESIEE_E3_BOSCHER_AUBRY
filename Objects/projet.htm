@@ -3,7 +3,7 @@
 <title>Static Call Graph - [.\Objects\projet.axf]</title></head>
 <body><HR>
 <H1>Static Call Graph for image .\Objects\projet.axf</H1><HR>
-<BR><P>#&#060CALLGRAPH&#062# ARM Linker, 5060750: Last Updated: Sat Jan 11 00:56:01 2025
+<BR><P>#&#060CALLGRAPH&#062# ARM Linker, 5060750: Last Updated: Sat Jan 11 08:34:12 2025
 <BR><P>
 <H3>Maximum Stack Usage =          0 bytes + Unknown(Functions without stacksize, Cycles, Untraceable Function Pointers)</H3><H3>
 Call chain for Maximum Stack Depth:</H3>
@@ -45,17 +45,20 @@ Functions with no stack information
  <LI><a href="#[37]">LED_ETHERNET_2_ON</a>
  <LI><a href="#[38]">LED_ETHERNET_1_OFF</a>
  <LI><a href="#[39]">LED_ETHERNET_2_OFF</a>
- <LI><a href="#[3a]">LED_ETHERNET_ALL_ON</a>
- <LI><a href="#[3b]">LED_ETHERNET_ALL_OFF</a>
+ <LI><a href="#[3a]">LED_ETHERNET_ALL_INVERT</a>
+ <LI><a href="#[3b]">LED_ETHERNET_ALL_ON</a>
+ <LI><a href="#[3c]">LED_ETHERNET_ALL_OFF</a>
  <LI><a href="#[1b]">SWITCH_INIT</a>
- <LI><a href="#[3c]">HANDLE_SWITCH_PRESS</a>
+ <LI><a href="#[3d]">HANDLE_SWITCH_PRESS</a>
  <LI><a href="#[1c]">ENABLE_STACK_SYSCTL_RCGC2</a>
+ <LI><a href="#[3e]">RETURN</a>
 </UL>
 </UL>
 <P>
 <H3>
 Mutually Recursive functions
-</H3> <LI><a href="#[2d]">rotleft</a>&nbsp;&nbsp;&nbsp;&rArr;&nbsp;&nbsp;&nbsp;<a href="#[3c]">HANDLE_SWITCH_PRESS</a><BR>
+</H3> <LI><a href="#[2d]">rotleft</a>&nbsp;&nbsp;&nbsp;&rArr;&nbsp;&nbsp;&nbsp;<a href="#[3d]">HANDLE_SWITCH_PRESS</a><BR>
+ <LI><a href="#[29]">LOOP_SHORT</a>&nbsp;&nbsp;&nbsp;&rArr;&nbsp;&nbsp;&nbsp;<a href="#[29]">LOOP_SHORT</a><BR>
  <LI><a href="#[2e]">BUMPER_CHECK_DROIT</a>&nbsp;&nbsp;&nbsp;&rArr;&nbsp;&nbsp;&nbsp;<a href="#[2d]">rotleft</a><BR>
  <LI><a href="#[1]">NMI_Handler</a>&nbsp;&nbsp;&nbsp;&rArr;&nbsp;&nbsp;&nbsp;<a href="#[1]">NMI_Handler</a><BR>
  <LI><a href="#[2]">HardFault_Handler</a>&nbsp;&nbsp;&nbsp;&rArr;&nbsp;&nbsp;&nbsp;<a href="#[2]">HardFault_Handler</a><BR>
@@ -76,7 +79,6 @@ Mutually Recursive functions
  <LI><a href="#[11]">Interrupt7_Handler</a>&nbsp;&nbsp;&nbsp;&rArr;&nbsp;&nbsp;&nbsp;<a href="#[11]">Interrupt7_Handler</a><BR>
  <LI><a href="#[12]">Interrupt8_Handler</a>&nbsp;&nbsp;&nbsp;&rArr;&nbsp;&nbsp;&nbsp;<a href="#[12]">Interrupt8_Handler</a><BR>
  <LI><a href="#[13]">Interrupt9_Handler</a>&nbsp;&nbsp;&nbsp;&rArr;&nbsp;&nbsp;&nbsp;<a href="#[13]">Interrupt9_Handler</a><BR>
- <LI><a href="#[29]">LOOP_SHORT</a>&nbsp;&nbsp;&nbsp;&rArr;&nbsp;&nbsp;&nbsp;<a href="#[29]">LOOP_SHORT</a><BR>
 </UL>
 <P>
 <H3>
@@ -161,7 +163,8 @@ Global Symbols
 </UL>
 
 <P><STRONG><a name="[28]"></a>MOTEUR_RECULER_SHORT</STRONG> (Thumb, 0 bytes, Stack size unknown bytes, rk_config_moteur.o(.text))
-<BR><BR>[Calls]<UL><LI><a href="#[3a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;LED_ETHERNET_ALL_ON
+<BR><BR>[Calls]<UL><LI><a href="#[3b]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;LED_ETHERNET_ALL_ON
+<LI><a href="#[29]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;LOOP_SHORT
 <LI><a href="#[23]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;MOTEUR_GAUCHE_ARRIERE
 <LI><a href="#[21]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;MOTEUR_DROIT_ARRIERE
 <LI><a href="#[1f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;MOTEUR_GAUCHE_ON
@@ -170,11 +173,13 @@ Global Symbols
 <BR>[Called By]<UL><LI><a href="#[27]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;CALL_MOTEUR_RECULER_SHORT
 </UL>
 
-<P><STRONG><a name="[29]"></a>LOOP_SHORT</STRONG> (Thumb, 0 bytes, Stack size unknown bytes, rk_config_moteur.o(.text), UNUSED, KEPT)
-<BR><BR>[Calls]<UL><LI><a href="#[3b]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;LED_ETHERNET_ALL_OFF
+<P><STRONG><a name="[29]"></a>LOOP_SHORT</STRONG> (Thumb, 0 bytes, Stack size unknown bytes, rk_config_moteur.o(.text))
+<BR><BR>[Calls]<UL><LI><a href="#[3c]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;LED_ETHERNET_ALL_OFF
+<LI><a href="#[3a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;LED_ETHERNET_ALL_INVERT
 <LI><a href="#[29]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;LOOP_SHORT
 </UL>
 <BR>[Called By]<UL><LI><a href="#[29]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;LOOP_SHORT
+<LI><a href="#[28]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;MOTEUR_RECULER_SHORT
 </UL>
 
 <P><STRONG><a name="[2a]"></a>TRAJECTORY_LEFT</STRONG> (Thumb, 0 bytes, Stack size unknown bytes, rk_config_moteur.o(.text))
@@ -188,7 +193,7 @@ Global Symbols
 <P><STRONG><a name="[18]"></a>__main</STRONG> (Thumb, 0 bytes, Stack size unknown bytes, main.o(.text))
 <BR><BR>[Calls]<UL><LI><a href="#[1b]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;SWITCH_INIT
 <LI><a href="#[1a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;LED_CONFIG_ALL
-<LI><a href="#[3c]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HANDLE_SWITCH_PRESS
+<LI><a href="#[3d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HANDLE_SWITCH_PRESS
 <LI><a href="#[19]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;BUMPER_INIT
 <LI><a href="#[17]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;MOTEUR_INIT
 </UL>
@@ -204,7 +209,7 @@ Global Symbols
 <LI><a href="#[1f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;MOTEUR_GAUCHE_ON
 <LI><a href="#[1d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;MOTEUR_DROIT_ON
 </UL>
-<BR>[Called By]<UL><LI><a href="#[3c]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HANDLE_SWITCH_PRESS
+<BR>[Called By]<UL><LI><a href="#[3d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HANDLE_SWITCH_PRESS
 <LI><a href="#[2f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;BUMPER_CHECK_GAUCHE
 </UL>
 
@@ -213,7 +218,7 @@ Global Symbols
 <LI><a href="#[38]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;LED_ETHERNET_1_OFF
 <LI><a href="#[33]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;LED_2_OFF
 <LI><a href="#[32]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;LED_1_OFF
-<LI><a href="#[3c]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HANDLE_SWITCH_PRESS
+<LI><a href="#[3d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HANDLE_SWITCH_PRESS
 <LI><a href="#[2f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;BUMPER_CHECK_GAUCHE
 <LI><a href="#[2e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;BUMPER_CHECK_DROIT
 <LI><a href="#[2a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;TRAJECTORY_LEFT
@@ -222,7 +227,7 @@ Global Symbols
 <LI><a href="#[1f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;MOTEUR_GAUCHE_ON
 <LI><a href="#[1d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;MOTEUR_DROIT_ON
 </UL>
-<BR>[Called By]<UL><LI><a href="#[3c]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HANDLE_SWITCH_PRESS
+<BR>[Called By]<UL><LI><a href="#[3d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HANDLE_SWITCH_PRESS
 <LI><a href="#[2e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;BUMPER_CHECK_DROIT
 </UL>
 
@@ -234,6 +239,7 @@ Global Symbols
 
 <P><STRONG><a name="[2e]"></a>BUMPER_CHECK_DROIT</STRONG> (Thumb, 0 bytes, Stack size unknown bytes, rk_config_bumper.o(.text))
 <BR><BR>[Calls]<UL><LI><a href="#[2d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;rotleft
+<LI><a href="#[3e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;RETURN
 <LI><a href="#[27]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;CALL_MOTEUR_RECULER_SHORT
 </UL>
 <BR>[Called By]<UL><LI><a href="#[2d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;rotleft
@@ -241,6 +247,7 @@ Global Symbols
 
 <P><STRONG><a name="[2f]"></a>BUMPER_CHECK_GAUCHE</STRONG> (Thumb, 0 bytes, Stack size unknown bytes, rk_config_bumper.o(.text))
 <BR><BR>[Calls]<UL><LI><a href="#[2c]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;rotright
+<LI><a href="#[3e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;RETURN
 <LI><a href="#[27]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;CALL_MOTEUR_RECULER_SHORT
 </UL>
 <BR>[Called By]<UL><LI><a href="#[2d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;rotleft
@@ -286,12 +293,21 @@ Global Symbols
 <BR><BR>[Called By]<UL><LI><a href="#[2c]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;rotright
 </UL>
 
-<P><STRONG><a name="[3a]"></a>LED_ETHERNET_ALL_ON</STRONG> (Thumb, 0 bytes, Stack size unknown bytes, rk_config_led.o(.text))
-<BR><BR>[Called By]<UL><LI><a href="#[28]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;MOTEUR_RECULER_SHORT
+<P><STRONG><a name="[3a]"></a>LED_ETHERNET_ALL_INVERT</STRONG> (Thumb, 0 bytes, Stack size unknown bytes, rk_config_led.o(.text))
+<BR><BR>[Calls]<UL><LI><a href="#[3b]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;LED_ETHERNET_ALL_ON
+<LI><a href="#[3c]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;LED_ETHERNET_ALL_OFF
+</UL>
+<BR>[Called By]<UL><LI><a href="#[29]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;LOOP_SHORT
 </UL>
 
-<P><STRONG><a name="[3b]"></a>LED_ETHERNET_ALL_OFF</STRONG> (Thumb, 0 bytes, Stack size unknown bytes, rk_config_led.o(.text), UNUSED, KEPT)
-<BR><BR>[Called By]<UL><LI><a href="#[29]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;LOOP_SHORT
+<P><STRONG><a name="[3b]"></a>LED_ETHERNET_ALL_ON</STRONG> (Thumb, 0 bytes, Stack size unknown bytes, rk_config_led.o(.text))
+<BR><BR>[Called By]<UL><LI><a href="#[3a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;LED_ETHERNET_ALL_INVERT
+<LI><a href="#[28]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;MOTEUR_RECULER_SHORT
+</UL>
+
+<P><STRONG><a name="[3c]"></a>LED_ETHERNET_ALL_OFF</STRONG> (Thumb, 0 bytes, Stack size unknown bytes, rk_config_led.o(.text))
+<BR><BR>[Called By]<UL><LI><a href="#[3a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;LED_ETHERNET_ALL_INVERT
+<LI><a href="#[29]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;LOOP_SHORT
 </UL>
 
 <P><STRONG><a name="[1b]"></a>SWITCH_INIT</STRONG> (Thumb, 0 bytes, Stack size unknown bytes, rk_config_switch.o(.text))
@@ -300,7 +316,7 @@ Global Symbols
 <BR>[Called By]<UL><LI><a href="#[18]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__main
 </UL>
 
-<P><STRONG><a name="[3c]"></a>HANDLE_SWITCH_PRESS</STRONG> (Thumb, 0 bytes, Stack size unknown bytes, rk_config_switch.o(.text))
+<P><STRONG><a name="[3d]"></a>HANDLE_SWITCH_PRESS</STRONG> (Thumb, 0 bytes, Stack size unknown bytes, rk_config_switch.o(.text))
 <BR><BR>[Calls]<UL><LI><a href="#[2d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;rotleft
 <LI><a href="#[2c]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;rotright
 </UL>
@@ -313,6 +329,11 @@ Global Symbols
 <LI><a href="#[1a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;LED_CONFIG_ALL
 <LI><a href="#[19]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;BUMPER_INIT
 <LI><a href="#[17]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;MOTEUR_INIT
+</UL>
+
+<P><STRONG><a name="[3e]"></a>RETURN</STRONG> (Thumb, 0 bytes, Stack size unknown bytes, utils.o(.text))
+<BR><BR>[Called By]<UL><LI><a href="#[2f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;BUMPER_CHECK_GAUCHE
+<LI><a href="#[2e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;BUMPER_CHECK_DROIT
 </UL>
 
 <P><STRONG><a name="[16]"></a>Reset_Handler</STRONG> (Thumb, 8 bytes, Stack size 0 bytes, startup_armcm3.o(.text))
@@ -450,11 +471,11 @@ Global Symbols
 </UL>
 <BR>[Address Reference Count : 1]<UL><LI> startup_armcm3.o(RESET)
 </UL>
-<P><STRONG><a name="[3d]"></a>__use_two_region_memory</STRONG> (Thumb, 2 bytes, Stack size 0 bytes, heapauxi.o(.text), UNUSED)
+<P><STRONG><a name="[3f]"></a>__use_two_region_memory</STRONG> (Thumb, 2 bytes, Stack size 0 bytes, heapauxi.o(.text), UNUSED)
 
-<P><STRONG><a name="[3e]"></a>__rt_heap_escrow$2region</STRONG> (Thumb, 2 bytes, Stack size 0 bytes, heapauxi.o(.text), UNUSED)
+<P><STRONG><a name="[40]"></a>__rt_heap_escrow$2region</STRONG> (Thumb, 2 bytes, Stack size 0 bytes, heapauxi.o(.text), UNUSED)
 
-<P><STRONG><a name="[3f]"></a>__rt_heap_expand$2region</STRONG> (Thumb, 2 bytes, Stack size 0 bytes, heapauxi.o(.text), UNUSED)
+<P><STRONG><a name="[41]"></a>__rt_heap_expand$2region</STRONG> (Thumb, 2 bytes, Stack size 0 bytes, heapauxi.o(.text), UNUSED)
 
 <P><STRONG><a name="[14]"></a>SystemInit</STRONG> (Thumb, 14 bytes, Stack size 0 bytes, system_armcm3.o(i.SystemInit))
 <BR>[Address Reference Count : 1]<UL><LI> startup_armcm3.o(.text)

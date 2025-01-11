@@ -3625,7 +3625,7 @@
       <Doc>
         <Name>.\RK_Config_Bumper.s</Name>
         <ColumnNumber>0</ColumnNumber>
-        <TopLine>53</TopLine>
+        <TopLine>76</TopLine>
         <CurrentLine>100</CurrentLine>
         <Folding>1</Folding>
         <ContractedFolders></ContractedFolders>
@@ -3633,9 +3633,9 @@
       </Doc>
       <Doc>
         <Name>.\RK_Config_Led.s</Name>
-        <ColumnNumber>0</ColumnNumber>
+        <ColumnNumber>40</ColumnNumber>
         <TopLine>53</TopLine>
-        <CurrentLine>72</CurrentLine>
+        <CurrentLine>69</CurrentLine>
         <Folding>1</Folding>
         <ContractedFolders></ContractedFolders>
         <PaneID>0</PaneID>

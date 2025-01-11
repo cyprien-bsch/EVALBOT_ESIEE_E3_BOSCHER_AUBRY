@@ -62,7 +62,7 @@ DUREE   			EQU     0x002FFFFF
         EXPORT LED_ETHERNET_1_ON
         EXPORT LED_ETHERNET_2_OFF
         EXPORT LED_ETHERNET_2_ON
-
+        EXPORT LED_ETHERNET_ALL_INVERT
 
 		IMPORT	ENABLE_STACK_SYSCTL_RCGC2
 
@@ -185,6 +185,19 @@ LED_ETHERNET_2_OFF
         pop {lr}                 ; Restore link register
         bx lr
 
+LED_ETHERNET_ALL_INVERT
+        push {lr}                 ; Save link register
+        ldr r6, = GPIO_PORTF_BASE + (BROCHE2_3<<2)
+        ldr r0, [r6]             ; Load current LED state into r0
+        cmp r0, #0x00
+        beq TURN_ON             ; If LED is off (==0), branch to turn on
+        bl  LED_ETHERNET_ALL_OFF  ; If LED is on, turn it off
+        b   DONE
+TURN_ON
+        bl  LED_ETHERNET_ALL_ON   ; Turn LED on
+DONE
+        pop {lr}                 
+        bx lr
 
 ; Function to turn ON both LEDs
 LED_ETHERNET_ALL_ON

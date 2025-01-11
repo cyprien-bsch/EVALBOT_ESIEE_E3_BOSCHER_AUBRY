@@ -3,7 +3,7 @@
 	  	ENTRY
 
 		EXPORT	ENABLE_STACK_SYSCTL_RCGC2
-
+        EXPORT  RETURN
 
 ; This register controls the clock gating logic in normal Run mode
 SYSCTL_RCGC2     EQU		0x400FE108	; SYSCTL_RCGC2_R (p291 datasheet de lm3s9b92.pdf)
@@ -19,5 +19,9 @@ ENABLE_STACK_SYSCTL_RCGC2
 		nop	   
 		nop	 
         bx  lr
+
+RETURN
+		BX lr
+        
 
 		END

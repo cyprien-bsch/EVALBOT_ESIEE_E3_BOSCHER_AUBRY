@@ -57,6 +57,8 @@ PORT1               EQU     0x02
 		IMPORT	rotright
 		IMPORT	ENABLE_STACK_SYSCTL_RCGC2
 
+        IMPORT  RETURN
+
 BUMPER_INIT
 
         push {lr}
@@ -94,7 +96,5 @@ BUMPER_CHECK_GAUCHE
         B   rotright
 
 	
-RETURN
-		BX lr
-        
+
         END

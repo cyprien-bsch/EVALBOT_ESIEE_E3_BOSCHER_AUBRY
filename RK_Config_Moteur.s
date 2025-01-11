@@ -67,7 +67,7 @@ LOW_SPEED		EQU		0xFF
 							
 DUREE_SHORT 		EQU 	0x002FFFFF
 
-
+DUREE_ULTRA_SHORT	EQU		0x00000FFF
 		AREA    |.text|, CODE, READONLY
 		ENTRY
 		
@@ -94,9 +94,11 @@ DUREE_SHORT 		EQU 	0x002FFFFF
 		IMPORT 	LED_ALL_OFF
         IMPORT 	LED_ETHERNET_ALL_ON
         IMPORT 	LED_ETHERNET_ALL_OFF
+		IMPORT	LED_ETHERNET_ALL_INVERT
+		
 
 		IMPORT	ENABLE_STACK_SYSCTL_RCGC2
-
+		IMPORT	RETURN
 
 MOTEUR_INIT	
 		push	{lr}
@@ -356,21 +358,38 @@ MOTEUR_RECULER_SHORT
         BL  MOTEUR_GAUCHE_ARRIERE
         BL  MOTEUR_DROIT_ARRIERE
         BL  LED_ETHERNET_ALL_ON
-        pop {lr}
         
         ldr r1, =DUREE_SHORT
+		ldr r2,	=DUREE_ULTRA_SHORT
         b   LOOP_SHORT
+		pop {lr}
+		BX	lr
+
 
 LOOP_SHORT
-        subs    r1, r1, #1
+        subs    r2, #1
         bne     LOOP_SHORT
         push {lr}
+		BL		RESET_SHORT_LOOP_AND_BLINK_LED
         BL  LED_ETHERNET_ALL_OFF
         pop {lr}
         BX   lr  
 
+RESET_SHORT_LOOP_AND_BLINK_LED
+		push	{r1, r2, lr}
+		BL	LED_ETHERNET_ALL_INVERT
+		pop	{r1, r2, lr}
+
+		ldr r2,	=DUREE_ULTRA_SHORT
+		subs r1, r2
+		cmp	r1, #0
+		BXEQ	lr
+		pop	{lr}
+		B	LOOP_SHORT
+
+
 SET_SPEED
-		pop {r6} ; Adress speed
+		pop {r6} ; Speed Adress 
 		pop	{r0} ; Speed value
 		str	r0, [r6]
 		bx	lr
