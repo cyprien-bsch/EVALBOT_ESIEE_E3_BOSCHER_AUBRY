@@ -67,7 +67,7 @@ LOW_SPEED		EQU		0xFF
 							
 DUREE_SHORT 		EQU 	0x002FFFFF
 
-DUREE_ULTRA_SHORT	EQU		0x00000FFF
+DUREE_ULTRA_SHORT	EQU		0x000FFFFF
 		AREA    |.text|, CODE, READONLY
 		ENTRY
 		
@@ -362,14 +362,11 @@ MOTEUR_RECULER_SHORT
         ldr r1, =DUREE_SHORT
 		ldr r2,	=DUREE_ULTRA_SHORT
         b   LOOP_SHORT
-		pop {lr}
-		BX	lr
 
 
 LOOP_SHORT
         subs    r2, #1
         bne     LOOP_SHORT
-        push {lr}
 		BL		RESET_SHORT_LOOP_AND_BLINK_LED
         BL  LED_ETHERNET_ALL_OFF
         pop {lr}
@@ -383,10 +380,11 @@ RESET_SHORT_LOOP_AND_BLINK_LED
 		ldr r2,	=DUREE_ULTRA_SHORT
 		subs r1, r2
 		cmp	r1, #0
-		BXEQ	lr
-		pop	{lr}
+		BLE	DONE
 		B	LOOP_SHORT
 
+DONE
+		bx      lr
 
 SET_SPEED
 		pop {r6} ; Speed Adress 

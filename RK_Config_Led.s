@@ -92,6 +92,8 @@ LED_CONFIG_ALL
         str r1, [r6]
 
 
+        BL  LED_ETHERNET_ALL_OFF
+
         pop {lr}
 		BX LR
 
@@ -189,7 +191,7 @@ LED_ETHERNET_ALL_INVERT
         push {lr}                 ; Save link register
         ldr r6, = GPIO_PORTF_BASE + (BROCHE2_3<<2)
         ldr r0, [r6]             ; Load current LED state into r0
-        cmp r0, #0x00
+        cmp r0, #BROCHE2_3
         beq TURN_ON             ; If LED is off (==0), branch to turn on
         bl  LED_ETHERNET_ALL_OFF  ; If LED is on, turn it off
         b   DONE

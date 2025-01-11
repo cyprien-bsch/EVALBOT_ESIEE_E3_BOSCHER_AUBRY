@@ -3,7 +3,7 @@
 <title>Static Call Graph - [.\Objects\projet.axf]</title></head>
 <body><HR>
 <H1>Static Call Graph for image .\Objects\projet.axf</H1><HR>
-<BR><P>#&#060CALLGRAPH&#062# ARM Linker, 5060750: Last Updated: Sat Jan 11 08:34:12 2025
+<BR><P>#&#060CALLGRAPH&#062# ARM Linker, 5060750: Last Updated: Sat Jan 11 21:15:35 2025
 <BR><P>
 <H3>Maximum Stack Usage =          0 bytes + Unknown(Functions without stacksize, Cycles, Untraceable Function Pointers)</H3><H3>
 Call chain for Maximum Stack Depth:</H3>
@@ -58,7 +58,6 @@ Functions with no stack information
 <H3>
 Mutually Recursive functions
 </H3> <LI><a href="#[2d]">rotleft</a>&nbsp;&nbsp;&nbsp;&rArr;&nbsp;&nbsp;&nbsp;<a href="#[3d]">HANDLE_SWITCH_PRESS</a><BR>
- <LI><a href="#[29]">LOOP_SHORT</a>&nbsp;&nbsp;&nbsp;&rArr;&nbsp;&nbsp;&nbsp;<a href="#[29]">LOOP_SHORT</a><BR>
  <LI><a href="#[2e]">BUMPER_CHECK_DROIT</a>&nbsp;&nbsp;&nbsp;&rArr;&nbsp;&nbsp;&nbsp;<a href="#[2d]">rotleft</a><BR>
  <LI><a href="#[1]">NMI_Handler</a>&nbsp;&nbsp;&nbsp;&rArr;&nbsp;&nbsp;&nbsp;<a href="#[1]">NMI_Handler</a><BR>
  <LI><a href="#[2]">HardFault_Handler</a>&nbsp;&nbsp;&nbsp;&rArr;&nbsp;&nbsp;&nbsp;<a href="#[2]">HardFault_Handler</a><BR>
@@ -79,6 +78,7 @@ Mutually Recursive functions
  <LI><a href="#[11]">Interrupt7_Handler</a>&nbsp;&nbsp;&nbsp;&rArr;&nbsp;&nbsp;&nbsp;<a href="#[11]">Interrupt7_Handler</a><BR>
  <LI><a href="#[12]">Interrupt8_Handler</a>&nbsp;&nbsp;&nbsp;&rArr;&nbsp;&nbsp;&nbsp;<a href="#[12]">Interrupt8_Handler</a><BR>
  <LI><a href="#[13]">Interrupt9_Handler</a>&nbsp;&nbsp;&nbsp;&rArr;&nbsp;&nbsp;&nbsp;<a href="#[13]">Interrupt9_Handler</a><BR>
+ <LI><a href="#[29]">LOOP_SHORT</a>&nbsp;&nbsp;&nbsp;&rArr;&nbsp;&nbsp;&nbsp;<a href="#[29]">LOOP_SHORT</a><BR>
 </UL>
 <P>
 <H3>
@@ -164,7 +164,6 @@ Global Symbols
 
 <P><STRONG><a name="[28]"></a>MOTEUR_RECULER_SHORT</STRONG> (Thumb, 0 bytes, Stack size unknown bytes, rk_config_moteur.o(.text))
 <BR><BR>[Calls]<UL><LI><a href="#[3b]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;LED_ETHERNET_ALL_ON
-<LI><a href="#[29]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;LOOP_SHORT
 <LI><a href="#[23]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;MOTEUR_GAUCHE_ARRIERE
 <LI><a href="#[21]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;MOTEUR_DROIT_ARRIERE
 <LI><a href="#[1f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;MOTEUR_GAUCHE_ON
@@ -173,13 +172,12 @@ Global Symbols
 <BR>[Called By]<UL><LI><a href="#[27]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;CALL_MOTEUR_RECULER_SHORT
 </UL>
 
-<P><STRONG><a name="[29]"></a>LOOP_SHORT</STRONG> (Thumb, 0 bytes, Stack size unknown bytes, rk_config_moteur.o(.text))
+<P><STRONG><a name="[29]"></a>LOOP_SHORT</STRONG> (Thumb, 0 bytes, Stack size unknown bytes, rk_config_moteur.o(.text), UNUSED, KEPT)
 <BR><BR>[Calls]<UL><LI><a href="#[3c]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;LED_ETHERNET_ALL_OFF
 <LI><a href="#[3a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;LED_ETHERNET_ALL_INVERT
 <LI><a href="#[29]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;LOOP_SHORT
 </UL>
 <BR>[Called By]<UL><LI><a href="#[29]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;LOOP_SHORT
-<LI><a href="#[28]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;MOTEUR_RECULER_SHORT
 </UL>
 
 <P><STRONG><a name="[2a]"></a>TRAJECTORY_LEFT</STRONG> (Thumb, 0 bytes, Stack size unknown bytes, rk_config_moteur.o(.text))
@@ -254,7 +252,8 @@ Global Symbols
 </UL>
 
 <P><STRONG><a name="[1a]"></a>LED_CONFIG_ALL</STRONG> (Thumb, 0 bytes, Stack size unknown bytes, rk_config_led.o(.text))
-<BR><BR>[Calls]<UL><LI><a href="#[1c]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;ENABLE_STACK_SYSCTL_RCGC2
+<BR><BR>[Calls]<UL><LI><a href="#[3c]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;LED_ETHERNET_ALL_OFF
+<LI><a href="#[1c]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;ENABLE_STACK_SYSCTL_RCGC2
 </UL>
 <BR>[Called By]<UL><LI><a href="#[18]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__main
 </UL>
@@ -293,7 +292,7 @@ Global Symbols
 <BR><BR>[Called By]<UL><LI><a href="#[2c]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;rotright
 </UL>
 
-<P><STRONG><a name="[3a]"></a>LED_ETHERNET_ALL_INVERT</STRONG> (Thumb, 0 bytes, Stack size unknown bytes, rk_config_led.o(.text))
+<P><STRONG><a name="[3a]"></a>LED_ETHERNET_ALL_INVERT</STRONG> (Thumb, 0 bytes, Stack size unknown bytes, rk_config_led.o(.text), UNUSED, KEPT)
 <BR><BR>[Calls]<UL><LI><a href="#[3b]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;LED_ETHERNET_ALL_ON
 <LI><a href="#[3c]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;LED_ETHERNET_ALL_OFF
 </UL>
@@ -306,7 +305,8 @@ Global Symbols
 </UL>
 
 <P><STRONG><a name="[3c]"></a>LED_ETHERNET_ALL_OFF</STRONG> (Thumb, 0 bytes, Stack size unknown bytes, rk_config_led.o(.text))
-<BR><BR>[Called By]<UL><LI><a href="#[3a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;LED_ETHERNET_ALL_INVERT
+<BR><BR>[Called By]<UL><LI><a href="#[1a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;LED_CONFIG_ALL
+<LI><a href="#[3a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;LED_ETHERNET_ALL_INVERT
 <LI><a href="#[29]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;LOOP_SHORT
 </UL>
 
