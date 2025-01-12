@@ -372,78 +372,72 @@ MOTEUR_GAUCHE_INVERSE
 		BX	LR
 
 CALL_MOTEUR_RECULER_SHORT
-        push {lr}
-        BL  MOTEUR_RECULER_SHORT       
-        pop {lr}
-        BX  LR                         
+		push    {lr}            ; Wrapper function for MOTEUR_RECULER_SHORT
+		BL      MOTEUR_RECULER_SHORT       
+		pop     {lr}
+		BX      LR                         
 
 MOTEUR_RECULER_SHORT
-        push {lr}
-        BL  MOTEUR_DROIT_ON
-        BL  MOTEUR_GAUCHE_ON
-		BL	TRAJECTORY_STRAIGHT
-        BL  MOTEUR_GAUCHE_ARRIERE
-        BL  MOTEUR_DROIT_ARRIERE
-        BL  LED_ETHERNET_ALL_ON
-        
-        ldr r1, =DELAY_SHORT
-		ldr r2,	=DELAY_ULTRA_SHORT
-        b   LOOP_SHORT
-
+		push    {lr}
+		BL      MOTEUR_DROIT_ON     ; Enable both motors
+		BL      MOTEUR_GAUCHE_ON
+		BL      TRAJECTORY_STRAIGHT  ; Set straight trajectory speeds
+		BL      MOTEUR_GAUCHE_ARRIERE ; Set both motors to reverse
+		BL      MOTEUR_DROIT_ARRIERE
+		BL      LED_ETHERNET_ALL_ON  ; Visual indicator - LEDs on
+		
+		ldr     r1, =DELAY_SHORT    ; Load delay counters
+		ldr     r2, =DELAY_ULTRA_SHORT
+		b       LOOP_SHORT
 
 LOOP_SHORT
-        subs    r2, #1
-        bne     LOOP_SHORT
-		BL		RESET_SHORT_LOOP_AND_BLINK_LED
-        BL  LED_ETHERNET_ALL_OFF
-        pop {lr}
-        BX   lr  
+		subs    r2, #1             ; Decrement inner loop counter
+		bne     LOOP_SHORT         ; Continue if not zero
+		BL      RESET_SHORT_LOOP_AND_BLINK_LED ; Reset loop and toggle LED
+		BL      LED_ETHERNET_ALL_OFF ; Turn off LEDs
+		pop     {lr}
+		BX      lr  
 
 RESET_SHORT_LOOP_AND_BLINK_LED
-		push	{r1, r2, lr}
-		BL	LED_ETHERNET_ALL_INVERT
-		pop	{r1, r2, lr}
+		push    {r1, r2, lr}       ; Save registers
+		BL      LED_ETHERNET_ALL_INVERT ; Toggle LED state
+		pop     {r1, r2, lr}
 
-		ldr r2,	=DELAY_ULTRA_SHORT
-		subs r1, r2
-		cmp	r1, #0
-		BLE	DONE
-		B	LOOP_SHORT
+		ldr     r2, =DELAY_ULTRA_SHORT ; Reset inner loop counter
+		subs    r1, r2                 ; Decrement outer loop counter
+		cmp     r1, #0                 ; Check if done
+		BLE     DONE                   ; Exit if counter <= 0
+		B       LOOP_SHORT             ; Continue looping
 
 DONE
 		bx      lr
 
 
 INCREASE_SPEED_MODE
-        push    {r0-r1, lr}
-        ldr     r0, =CURRENT_MODE
-        ldr     r1, [r0]            
-        cmp     r1, #3              
-        beq     DONE_INCREASE
-        add     r1, #1             
-        str     r1, [r0]            
-		BL		SET_LED_ACCORDING_TO_SPEED_MODE
+		push    {r0-r1, lr}
+		ldr     r0, =CURRENT_MODE   ; Load address of speed mode storage
+		ldr     r1, [r0]           ; Get current mode value
+		cmp     r1, #3             ; Check if already at max mode (3)
+		beq     DONE_INCREASE
+		add     r1, #1             ; Increment mode
+		str     r1, [r0]           ; Store new mode
+		BL      SET_LED_ACCORDING_TO_SPEED_MODE ; Update LED indicators
 DONE_INCREASE
-        pop     {r0-r1, lr}
-        bx      lr
+		pop     {r0-r1, lr}
+		bx      lr
 
 REDUCE_SPEED_MODE
-        push    {r0-r1, lr}
-		; Load current mode
-        ldr     r0, =CURRENT_MODE
-        
-		ldr     r1, [r0]      
-		; Check if already at min     
-        cmp     r1, #0             
-        beq     DONE_REDUCE
-		; Reduce mode
-        sub     r1, #1             
-		; Store new mode
-        str     r1, [r0]           
-		BL		SET_LED_ACCORDING_TO_SPEED_MODE
+		push    {r0-r1, lr}
+		ldr     r0, =CURRENT_MODE   ; Load address of speed mode storage
+		ldr     r1, [r0]           ; Get current mode value
+		cmp     r1, #0             ; Check if already at min mode (0)
+		beq     DONE_REDUCE
+		sub     r1, #1             ; Decrement mode
+		str     r1, [r0]           ; Store new mode
+		BL      SET_LED_ACCORDING_TO_SPEED_MODE ; Update LED indicators
 DONE_REDUCE
-        pop     {r0-r1, lr}
-        bx      lr
+		pop     {r0-r1, lr}
+		bx      lr
 
 GET_SPEED_FOR_MODE
         push    {r1-r2, lr}

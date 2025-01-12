@@ -1,8 +1,4 @@
 ; Evalbot (Cortex M3 de Texas Instrument)
-; programme - Exercice 2.1 : un appui sur SW1 met le Robot ;EVALBOT 
-; en rotation sur lui-m�me dans un sens donn�,
-; un appui sur SW2 inverse le sens de rotation
-; du robot et vice versa.
 
 		AREA    |.text|, CODE, READONLY
 		ENTRY
@@ -10,7 +6,6 @@
 		EXPORT	ROT_LEFT
 		EXPORT	ROT_RIGHT
 		
-		;; The IMPORT command specifies that a symbol is defined in a shared object at runtime.
 		IMPORT	MOTEUR_INIT					; initialise les moteurs (configure les pwms + GPIO)
 		
 		IMPORT	MOTEUR_DROIT_ON				; activer le moteur droit
@@ -42,43 +37,56 @@
 
 
 							
+; Main program entry point
 __main	
-		BL	SWITCH_INIT
-		BL	LED_CONFIG_ALL
-		BL	MOTEUR_INIT	   		   
-		BL 	BUMPER_INIT
+		BL      SWITCH_INIT         ; Initialize switches
+		BL      LED_CONFIG_ALL      ; Initialize all LEDs
+		BL      MOTEUR_INIT         ; Initialize motors      
+		BL      BUMPER_INIT         ; Initialize bumper sensors
 
-
+; Initial program loop 
 INITIAL_STATE    
-        bl	HANDLE_SWITCH_PRESS
-		BL	HANDLE_BUMPER_SET_SPEED
-        b   INITIAL_STATE
+		bl      HANDLE_SWITCH_PRESS ; Check and handle switch presses (to choose the start rotation direction)
+		BL      HANDLE_BUMPER_SET_SPEED ; Adjust speed based in function of the bumper state
+		b       INITIAL_STATE
 
+; Turn robot right 
 ROT_RIGHT    
-        BL  LED_ETHERNET_1_ON
-        BL  LED_ETHERNET_2_OFF
-		BL  MOTEUR_DROIT_ON
-        BL  MOTEUR_GAUCHE_ON
-        BL  MOTEUR_GAUCHE_AVANT
-        BL  MOTEUR_DROIT_AVANT 
-		BL	TRAJECTORY_RIGHT
-        b   LOOP
+		; Visual indicator for right turn
+		BL      LED_ETHERNET_1_ON   
+		BL      LED_ETHERNET_2_OFF
+		; Enable motors
+		BL      MOTEUR_DROIT_ON     
+		BL      MOTEUR_GAUCHE_ON
+		; Set motor directions
+		BL      MOTEUR_GAUCHE_AVANT 
+		BL      MOTEUR_DROIT_AVANT 
+		; Set appropriate trajectory
+		BL      TRAJECTORY_RIGHT    
+		b       LOOP
 
+; Turn robot left 
 ROT_LEFT    
-        BL  LED_ETHERNET_2_ON
-        BL  LED_ETHERNET_1_OFF
-        BL  MOTEUR_DROIT_ON
-        BL  MOTEUR_GAUCHE_ON
-        BL  MOTEUR_DROIT_AVANT
-        BL  MOTEUR_GAUCHE_AVANT 
-		BL	TRAJECTORY_LEFT
-        b	LOOP     
+		; Visual indicator for left turn
+		BL      LED_ETHERNET_2_ON   
+		BL      LED_ETHERNET_1_OFF
+		; Enable motors
+		BL      MOTEUR_DROIT_ON     
+		BL      MOTEUR_GAUCHE_ON
+		; Set motor directions
+		BL      MOTEUR_DROIT_AVANT  
+		BL      MOTEUR_GAUCHE_AVANT 
+		; Set appropriate trajectory
+		BL      TRAJECTORY_LEFT     
+		b       LOOP     
 
+; Main loop
 LOOP
-		BL  BUMPER_CHECK_GAUCHE
-        BL  BUMPER_CHECK_DROIT
-		BL	HANDLE_SWITCH_PRESS
-		B   LOOP
-
-
+		; Check left bumper
+		BL      BUMPER_CHECK_GAUCHE 
+		; Check right bumper
+		BL      BUMPER_CHECK_DROIT  
+		; Check switches
+		BL      HANDLE_SWITCH_PRESS 
+		B       LOOP
 		END

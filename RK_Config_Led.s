@@ -65,31 +65,35 @@ BROCHE2_3			EQU		0x0C		; led ethernet 1 & led ethernet 2
 
 LED_CONFIG_ALL
         push {lr}
-		; ;; Enable the Port F & D peripheral clock 		(p291 datasheet de lm3s9B96.pdf)	
-        mov r0, #0x00000028  				;; Enable clock sur GPIO F & D sur lesquels sont branchés les leds
+	; Enable the Port F & D peripheral clock (p291 datasheet de lm3s9B96.pdf)	
+        mov r0, #0x00000028
         push {r0}
         BL	ENABLE_STACK_SYSCTL_RCGC2
         	
-		;CONFIGURATION LED
+	;CONFIGURATION LED (BROCHE4_5) et LED_ETHERNET (BROCHE2_3)
         ldr r1, = BROCHE4_5
         ldr r2, = BROCHE2_3
         orr r1, r2
-
-        ldr r6, = GPIO_PORTF_BASE+GPIO_O_DIR    ;; 1 Pin du portF en sortie (broche 4 : 00010000)
+                
+        ; 1 Pin du portF en sortie (broche 4 : 00010000)
+        ldr r6, = GPIO_PORTF_BASE+GPIO_O_DIR    
         str r1, [r6]
 		
-		ldr r6, = GPIO_PORTF_BASE+GPIO_O_DEN	;; Enable Digital Function 
+        ; Enable Digital Function
+	ldr r6, = GPIO_PORTF_BASE+GPIO_O_DEN	 
         str r1, [r6]
 		
-		ldr r6, = GPIO_PORTF_BASE+GPIO_O_DR2R	;; Choix de l'intensit� de sortie (2mA)
+        ; Choix de l'intensité de sortie (2mA)
+	ldr r6, = GPIO_PORTF_BASE+GPIO_O_DR2R	
         str r1, [r6]
 
-
+        ; Ethernet leds are on by default so we turn them off
         BL  LED_ETHERNET_ALL_OFF
 
         pop {lr}
-		BX LR
+        BX LR
 
+; Function to turn ON LED 1 (Pin 4)
 LED_1_ON
         push {lr}                 ; Save link register
         BL   LED_2_OFF
@@ -202,7 +206,7 @@ LED_ETHERNET_ALL_ON
         ldr r6, = GPIO_PORTF_BASE + (BROCHE2_3<<2)
         mov r3, #0x00        
         str r3, [r6]             ; Turn on both LEDs
-        pop {lr}                 ; Restore link register
+        pop {lr}                 
         bx lr
 
 ; Function to turn OFF both LEDs
@@ -211,42 +215,47 @@ LED_ETHERNET_ALL_OFF
         ldr r6, = GPIO_PORTF_BASE + (BROCHE2_3<<2)
         mov r2, #BROCHE2_3           
         str r2, [r6]             ; Turn off both LEDs
-        pop {lr}                 ; Restore link register
+        pop {lr}                 
         bx lr
 
 
 SET_LED_ACCORDING_TO_SPEED_MODE
         push    {lr}
-        ldr     r1, =CURRENT_MODE
-        ldr     r1, [r1]           ; Load current mode
 
+        ; Load current mode
+        ldr     r1, =CURRENT_MODE   
+        ldr     r1, [r1]           
 
+        ; SPEED_MODE_SLOW (0): All LEDs off 
         ldr     r2, =SPEED_MODE_SLOW
         cmp     r1, r2
         push    {r1}
-        BLEQ    LED_ALL_OFF
+        BLEQ    LED_ALL_OFF    
         pop     {r1}
 
+        ; SPEED_MODE_NORMAL (1): LED 2 on 
         ldr     r2, =SPEED_MODE_NORMAL
         cmp     r1, r2
         push    {r1}
         BLEQ    LED_2_ON
         pop     {r1}
 
+        ; SPEED_MODE_FAST (2): LED 1 on 
         ldr     r2, =SPEED_MODE_FAST
         cmp     r1, r2
         push    {r1}
         BLEQ    LED_1_ON
         pop     {r1}
 
+        ; SPEED_MODE_FASTEST (3): All LEDs on
         ldr     r2, =SPEED_MODE_FASTEST
         cmp     r1, r2
         push    {r1}
         BLEQ    LED_ALL_ON
         pop     {r1}
 
-
         pop     {lr}
         BX      lr
 
+       
         END
