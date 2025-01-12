@@ -42,13 +42,21 @@ PORT0				EQU		0x01
 PORT1               EQU     0x02
 
 
+DELAY               EQU     0x000FFFFF
+
+
+		AREA    MyData, DATA, READWRITE
+
+LAST_BUMPER1_STATE  SPACE   4
+LAST_BUMPER2_STATE  SPACE   4
+
         AREA    |.text|, CODE, READONLY
 		ENTRY
 
         EXPORT	BUMPER_INIT
         EXPORT	BUMPER_CHECK_DROIT
         EXPORT	BUMPER_CHECK_GAUCHE
-
+        EXPORT  HANDLE_BUMPER_SET_SPEED
 
         IMPORT	CALL_MOTEUR_RECULER_SHORT
 		IMPORT	MOTEUR_RECULER_SHORT
@@ -56,6 +64,8 @@ PORT1               EQU     0x02
         IMPORT	rotleft
 		IMPORT	rotright
 		IMPORT	ENABLE_STACK_SYSCTL_RCGC2
+		IMPORT	INCREASE_SPEED_MODE
+		IMPORT	REDUCE_SPEED_MODE
 
         IMPORT  RETURN
 
@@ -95,6 +105,87 @@ BUMPER_CHECK_GAUCHE
        	bl CALL_MOTEUR_RECULER_SHORT
         B   rotright
 
-	
+
+HANDLE_BUMPER_SET_SPEED
+        push    {lr}           
+
+        ; --- Check Bumper 1 (PORT1) ---
+        ldr     r9, = GPIO_PORTE_BASE + (PORT1 << 2)
+        ldr     r10, [r9]             
+        cmp     r10, #0x02            
+        bne     HANDLE_BUMPER1_PRESS  
+        BL      BUMPER1_NOT_PRESSED   
+
+        ; --- Check Bumper 2 (PORT0) ---
+        ldr     r7, = GPIO_PORTE_BASE + (PORT0 << 2)
+        ldr     r5, [r7]              
+        cmp     r5, #0x01             
+        bne     HANDLE_BUMPER2_PRESS  
+        BL      BUMPER2_NOT_PRESSED   
+
+        b       HANDLE_BUMPER_END     
+
+HANDLE_BUMPER1_PRESS
+        ldr     r11, = LAST_BUMPER1_STATE
+        ; Load previous state of Bumper 1
+        ldr     r12, [r11]
+        ; If already pressed            
+        cmp     r12, #1               
+        beq     HANDLE_BUMPER_END
+
+        ; If first press 
+        ; Update state to "pressed"
+        mov     r12, #1               
+        str     r12, [r11]
+        ; Wait to update the state of the bumper            
+        BL      DEBOUNCE_DELAY
+        ; Reduce the speed 
+        BL      REDUCE_SPEED_MODE    
+        ; end of function 
+        b       HANDLE_BUMPER_END     
+
+HANDLE_BUMPER2_PRESS
+        ldr     r11, = LAST_BUMPER2_STATE
+        ; Load previous state of Bumper 2
+        ldr     r12, [r11]    
+        ; If already pressed                    
+        cmp     r12, #1               
+        beq     HANDLE_BUMPER_END     
+
+        ; If first press 
+        ; Update state to "pressed"
+        mov     r12, #1               
+        str     r12, [r11]            
+        BL      DEBOUNCE_DELAY
+        BL      INCREASE_SPEED_MODE   
+        b       HANDLE_BUMPER_END     
+
+BUMPER1_NOT_PRESSED
+        ldr     r11, = LAST_BUMPER1_STATE
+        ; Reset state to "not pressed"
+        mov     r12, #0               
+        str     r12, [r11]
+        bx      lr
+
+BUMPER2_NOT_PRESSED
+        ldr     r11, = LAST_BUMPER2_STATE
+        ; Reset state to "not pressed"
+        mov     r12, #0               
+        str     r12, [r11]
+        bx      lr
+
+HANDLE_BUMPER_END
+        pop     {lr}           
+        bx      lr
+
+
+DEBOUNCE_DELAY
+        ldr     R0, =DELAY       
+DEBOUNCE_LOOP
+        ; Wait for the delay
+        SUBS    R0, R0, #1
+        BNE     DEBOUNCE_LOOP         
+        BX      LR
+
 
         END

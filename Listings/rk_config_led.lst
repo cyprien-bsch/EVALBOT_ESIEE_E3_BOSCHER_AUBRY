@@ -125,255 +125,310 @@ ARM Macro Assembler    Page 2
    64 00000000                 EXPORT           LED_ETHERNET_2_ON
    65 00000000                 EXPORT           LED_ETHERNET_ALL_INVERT
    66 00000000         
-   67 00000000                 IMPORT           ENABLE_STACK_SYSCTL_RCGC2
+   67 00000000                 EXPORT           SET_LED_ACCORDING_TO_SPEED_MODE
    68 00000000         
-   69 00000000         ; Il faut appeler BLINK après une config
+   69 00000000                 IMPORT           ENABLE_STACK_SYSCTL_RCGC2
 
 
 
 ARM Macro Assembler    Page 3 
 
 
-   70 00000000         ; Il faut à chaque fois refaire la config
-   71 00000000         ; Ex : (LED1_CONFIG + BLINK ||LED_CONFIG_ALL + BLINK)
-   72 00000000         
-   73 00000000         LED_CONFIG_ALL
-   74 00000000 B500            push             {lr}
-   75 00000002         ; ;; Enable the Port F & D peripheral clock   (p291 data
+   70 00000000         
+   71 00000000                 IMPORT           SPEED_MODE_SLOW
+   72 00000000                 IMPORT           SPEED_MODE_NORMAL
+   73 00000000                 IMPORT           SPEED_MODE_FAST
+   74 00000000                 IMPORT           SPEED_MODE_FASTEST
+   75 00000000                 IMPORT           CURRENT_MODE
+   76 00000000         
+   77 00000000         ; Il faut appeler BLINK après une config
+   78 00000000         ; Il faut à chaque fois refaire la config
+   79 00000000         ; Ex : (LED1_CONFIG + BLINK ||LED_CONFIG_ALL + BLINK)
+   80 00000000         
+   81 00000000         LED_CONFIG_ALL
+   82 00000000 B500            push             {lr}
+   83 00000002         ; ;; Enable the Port F & D peripheral clock   (p291 data
                        sheet de lm3s9B96.pdf) 
-   76 00000002 F04F 0028       mov              r0, #0x00000028 ;; Enable clock
+   84 00000002 F04F 0028       mov              r0, #0x00000028 ;; Enable clock
                                                              sur GPIO F & D sur
                                                              lesquels sont bran
                                                             chés les leds
-   77 00000006 B401            push             {r0}
-   78 00000008 F7FF FFFE       BL               ENABLE_STACK_SYSCTL_RCGC2
-   79 0000000C         
-   80 0000000C         ;CONFIGURATION LED
-   81 0000000C F04F 0130       ldr              r1, = BROCHE4_5
-   82 00000010 F04F 020C       ldr              r2, = BROCHE2_3
-   83 00000014 EA41 0102       orr              r1, r2
-   84 00000018         
-   85 00000018 4E3B            ldr              r6, = GPIO_PORTF_BASE+GPIO_O_DI
+   85 00000006 B401            push             {r0}
+   86 00000008 F7FF FFFE       BL               ENABLE_STACK_SYSCTL_RCGC2
+   87 0000000C         
+   88 0000000C         ;CONFIGURATION LED
+   89 0000000C F04F 0130       ldr              r1, = BROCHE4_5
+   90 00000010 F04F 020C       ldr              r2, = BROCHE2_3
+   91 00000014 EA41 0102       orr              r1, r2
+   92 00000018         
+   93 00000018 4E4E            ldr              r6, = GPIO_PORTF_BASE+GPIO_O_DI
 R 
                                                             ;; 1 Pin du portF e
                                                             n sortie (broche 4 
                                                             : 00010000)
-   86 0000001A 6031            str              r1, [r6]
-   87 0000001C         
-   88 0000001C 4E3B            ldr              r6, = GPIO_PORTF_BASE+GPIO_O_DE
+   94 0000001A 6031            str              r1, [r6]
+   95 0000001C         
+   96 0000001C 4E4E            ldr              r6, = GPIO_PORTF_BASE+GPIO_O_DE
 N 
                                                             ;; Enable Digital F
                                                             unction 
-   89 0000001E 6031            str              r1, [r6]
-   90 00000020         
-   91 00000020 4E3B            ldr              r6, = GPIO_PORTF_BASE+GPIO_O_DR
+   97 0000001E 6031            str              r1, [r6]
+   98 00000020         
+   99 00000020 4E4E            ldr              r6, = GPIO_PORTF_BASE+GPIO_O_DR
 2R 
                                                             ;; Choix de l'inten
                                                             sit� de sortie (2
                                                             mA)
-   92 00000022 6031            str              r1, [r6]
-   93 00000024         
-   94 00000024         
-   95 00000024 F7FF FFFE       BL               LED_ETHERNET_ALL_OFF
-   96 00000028         
-   97 00000028 F85D EB04       pop              {lr}
-   98 0000002C 4770            BX               LR
-   99 0000002E         
-  100 0000002E         LED_1_ON
-  101 0000002E B500            push             {lr}        ; Save link registe
+  100 00000022 6031            str              r1, [r6]
+  101 00000024         
+  102 00000024         
+  103 00000024 F7FF FFFE       BL               LED_ETHERNET_ALL_OFF
+  104 00000028         
+  105 00000028 F85D EB04       pop              {lr}
+  106 0000002C 4770            BX               LR
+  107 0000002E         
+  108 0000002E         LED_1_ON
+  109 0000002E B500            push             {lr}        ; Save link registe
                                                             r
-  102 00000030 4E38            ldr              r6, = GPIO_PORTF_BASE + (PIN4<<
+  110 00000030 F7FF FFFE       BL               LED_2_OFF
+  111 00000034 4E4A            ldr              r6, = GPIO_PORTF_BASE + (PIN4<<
 2)
-  103 00000032 F04F 0310       mov              r3, #PIN4   ; Load pin 4 patter
-                                                            n (0x10)
-  104 00000036 6033            str              r3, [r6]    ; Turn on LED 1
-  105 00000038 F85D EB04       pop              {lr}        ; Restore link regi
-                                                            ster
-  106 0000003C 4770            bx               lr
-  107 0000003E         
-  108 0000003E         ; Function to turn ON LED 2 (Pin 5)
-  109 0000003E         LED_2_ON
 
 
 
 ARM Macro Assembler    Page 4 
 
 
-  110 0000003E B500            push             {lr}        ; Save link registe
+  112 00000036 F04F 0310       mov              r3, #PIN4   ; Load pin 4 patter
+                                                            n (0x10)
+  113 0000003A 6033            str              r3, [r6]    ; Turn on LED 1
+  114 0000003C F85D EB04       pop              {lr}        ; Restore link regi
+                                                            ster
+  115 00000040 4770            bx               lr
+  116 00000042         
+  117 00000042         ; Function to turn ON LED 2 (Pin 5)
+  118 00000042         LED_2_ON
+  119 00000042 B500            push             {lr}        ; Save link registe
                                                             r
-  111 00000040 4E35            ldr              r6, = GPIO_PORTF_BASE  + (PIN5<
+  120 00000044 F7FF FFFE       BL               LED_1_OFF
+  121 00000048 4E46            ldr              r6, = GPIO_PORTF_BASE  + (PIN5<
 <2)
-  112 00000042 F04F 0320       mov              r3, #PIN5   ; Load pin 5 patter
+  122 0000004A F04F 0320       mov              r3, #PIN5   ; Load pin 5 patter
                                                             n (0x20)
-  113 00000046 6033            str              r3, [r6]    ; Turn on LED 2
-  114 00000048 F85D EB04       pop              {lr}        ; Restore link regi
+  123 0000004E 6033            str              r3, [r6]    ; Turn on LED 2
+  124 00000050 F85D EB04       pop              {lr}        ; Restore link regi
                                                             ster
-  115 0000004C 4770            bx               lr
-  116 0000004E         
-  117 0000004E         ; Function to turn OFF LED 1 (Pin 4)
-  118 0000004E         LED_1_OFF
-  119 0000004E B500            push             {lr}        ; Save link registe
+  125 00000054 4770            bx               lr
+  126 00000056         
+  127 00000056         ; Function to turn OFF LED 1 (Pin 4)
+  128 00000056         LED_1_OFF
+  129 00000056 B500            push             {lr}        ; Save link registe
                                                             r
-  120 00000050 4E30            ldr              r6, = GPIO_PORTF_BASE + (PIN4<<
+  130 00000058 4E41            ldr              r6, = GPIO_PORTF_BASE + (PIN4<<
 2)
-  121 00000052 F04F 0200       mov              r2, #0x00   ; Clear value
-  122 00000056 6032            str              r2, [r6]    ; Turn off LED 1
-  123 00000058 F85D EB04       pop              {lr}        ; Restore link regi
+  131 0000005A F04F 0200       mov              r2, #0x00   ; Clear value
+  132 0000005E 6032            str              r2, [r6]    ; Turn off LED 1
+  133 00000060 F85D EB04       pop              {lr}        ; Restore link regi
                                                             ster
-  124 0000005C 4770            bx               lr
-  125 0000005E         
-  126 0000005E         ; Function to turn OFF LED 2 (Pin 5)
-  127 0000005E         LED_2_OFF
-  128 0000005E B500            push             {lr}        ; Save link registe
+  134 00000064 4770            bx               lr
+  135 00000066         
+  136 00000066         ; Function to turn OFF LED 2 (Pin 5)
+  137 00000066         LED_2_OFF
+  138 00000066 B500            push             {lr}        ; Save link registe
                                                             r
-  129 00000060 4E2D            ldr              r6, = GPIO_PORTF_BASE + (PIN5<<
+  139 00000068 4E3E            ldr              r6, = GPIO_PORTF_BASE + (PIN5<<
 2)
-  130 00000062 F04F 0200       mov              r2, #0x00   ; Clear value
-  131 00000066 6032            str              r2, [r6]    ; Turn off LED 2
-  132 00000068 F85D EB04       pop              {lr}        ; Restore link regi
+  140 0000006A F04F 0200       mov              r2, #0x00   ; Clear value
+  141 0000006E 6032            str              r2, [r6]    ; Turn off LED 2
+  142 00000070 F85D EB04       pop              {lr}        ; Restore link regi
                                                             ster
-  133 0000006C 4770            bx               lr
-  134 0000006E         
-  135 0000006E         ; Function to turn ON both LEDs
-  136 0000006E         LED_ALL_ON
-  137 0000006E B500            push             {lr}        ; Save link registe
+  143 00000074 4770            bx               lr
+  144 00000076         
+  145 00000076         ; Function to turn ON both LEDs
+  146 00000076         LED_ALL_ON
+  147 00000076 B500            push             {lr}        ; Save link registe
                                                             r
-  138 00000070 4E2A            ldr              r6, = GPIO_PORTF_BASE + (BROCHE
+  148 00000078 4E3B            ldr              r6, = GPIO_PORTF_BASE + (BROCHE
 4_5<<2)
-  139 00000072 F04F 0330       mov              r3, #BROCHE4_5 ; Load pattern f
+  149 0000007A F04F 0330       mov              r3, #BROCHE4_5 ; Load pattern f
                                                             or both LEDs (0x30)
                                                             
-  140 00000076 6033            str              r3, [r6]    ; Turn on both LEDs
+  150 0000007E 6033            str              r3, [r6]    ; Turn on both LEDs
                                                             
-  141 00000078 F85D EB04       pop              {lr}        ; Restore link regi
+  151 00000080 F85D EB04       pop              {lr}        ; Restore link regi
                                                             ster
-  142 0000007C 4770            bx               lr
-  143 0000007E         
-  144 0000007E         ; Function to turn OFF both LEDs
-  145 0000007E         LED_ALL_OFF
-  146 0000007E B500            push             {lr}        ; Save link registe
-                                                            r
-  147 00000080 4E26            ldr              r6, = GPIO_PORTF_BASE + (BROCHE
-4_5<<2)
-  148 00000082 F04F 0200       mov              r2, #0x00   ; Clear value
-  149 00000086 6032            str              r2, [r6]    ; Turn off both LED
-                                                            s
+  152 00000084 4770            bx               lr
 
 
 
 ARM Macro Assembler    Page 5 
 
 
-  150 00000088 F85D EB04       pop              {lr}        ; Restore link regi
-                                                            ster
-  151 0000008C 4770            bx               lr
-  152 0000008E         
-  153 0000008E         
-  154 0000008E         ; Function to turn ON LED 1 (Pin 4)
-  155 0000008E         LED_ETHERNET_1_ON
-  156 0000008E B500            push             {lr}        ; Save link registe
+  153 00000086         
+  154 00000086         ; Function to turn OFF both LEDs
+  155 00000086         LED_ALL_OFF
+  156 00000086 B500            push             {lr}        ; Save link registe
                                                             r
-  157 00000090 4E23            ldr              r6, = GPIO_PORTF_BASE + (PIN2<<
+  157 00000088 4E37            ldr              r6, = GPIO_PORTF_BASE + (BROCHE
+4_5<<2)
+  158 0000008A F04F 0200       mov              r2, #0x00   ; Clear value
+  159 0000008E 6032            str              r2, [r6]    ; Turn off both LED
+                                                            s
+  160 00000090 F85D EB04       pop              {lr}        ; Restore link regi
+                                                            ster
+  161 00000094 4770            bx               lr
+  162 00000096         
+  163 00000096         
+  164 00000096         ; Function to turn ON LED 1 (Pin 4)
+  165 00000096         LED_ETHERNET_1_ON
+  166 00000096 B500            push             {lr}        ; Save link registe
+                                                            r
+  167 00000098 4E34            ldr              r6, = GPIO_PORTF_BASE + (PIN2<<
 2)
-  158 00000092 F04F 0304       mov              r3, #PIN2   ; Load pin 4 patter
+  168 0000009A F04F 0304       mov              r3, #PIN2   ; Load pin 4 patter
                                                             n (0x10)
-  159 00000096 6033            str              r3, [r6]    ; Turn on LED 1
-  160 00000098 F85D EB04       pop              {lr}        ; Restore link regi
+  169 0000009E 6033            str              r3, [r6]    ; Turn on LED 1
+  170 000000A0 F85D EB04       pop              {lr}        ; Restore link regi
                                                             ster
-  161 0000009C 4770            bx               lr
-  162 0000009E         
-  163 0000009E         ; Function to turn ON LED 2 (Pin 5)
-  164 0000009E         LED_ETHERNET_2_ON
-  165 0000009E B500            push             {lr}        ; Save link registe
+  171 000000A4 4770            bx               lr
+  172 000000A6         
+  173 000000A6         ; Function to turn ON LED 2 (Pin 5)
+  174 000000A6         LED_ETHERNET_2_ON
+  175 000000A6 B500            push             {lr}        ; Save link registe
                                                             r
-  166 000000A0 4E20            ldr              r6, = GPIO_PORTF_BASE  + (PIN3<
+  176 000000A8 4E31            ldr              r6, = GPIO_PORTF_BASE  + (PIN3<
 <2)
-  167 000000A2 F04F 0308       mov              r3, #PIN3   ; Load pin 5 patter
+  177 000000AA F04F 0308       mov              r3, #PIN3   ; Load pin 5 patter
                                                             n (0x20)
-  168 000000A6 6033            str              r3, [r6]    ; Turn on LED 2
-  169 000000A8 F85D EB04       pop              {lr}        ; Restore link regi
+  178 000000AE 6033            str              r3, [r6]    ; Turn on LED 2
+  179 000000B0 F85D EB04       pop              {lr}        ; Restore link regi
                                                             ster
-  170 000000AC 4770            bx               lr
-  171 000000AE         
-  172 000000AE         ; Function to turn OFF LED 1 (Pin 4)
-  173 000000AE         LED_ETHERNET_1_OFF
-  174 000000AE B500            push             {lr}        ; Save link registe
+  180 000000B4 4770            bx               lr
+  181 000000B6         
+  182 000000B6         ; Function to turn OFF LED 1 (Pin 4)
+  183 000000B6         LED_ETHERNET_1_OFF
+  184 000000B6 B500            push             {lr}        ; Save link registe
                                                             r
-  175 000000B0 4E1B            ldr              r6, = GPIO_PORTF_BASE + (PIN2<<
+  185 000000B8 4E2C            ldr              r6, = GPIO_PORTF_BASE + (PIN2<<
 2)
-  176 000000B2 F04F 0200       mov              r2, #0x00   ; Clear value
-  177 000000B6 6032            str              r2, [r6]    ; Turn off LED 1
-  178 000000B8 F85D EB04       pop              {lr}        ; Restore link regi
+  186 000000BA F04F 0200       mov              r2, #0x00   ; Clear value
+  187 000000BE 6032            str              r2, [r6]    ; Turn off LED 1
+  188 000000C0 F85D EB04       pop              {lr}        ; Restore link regi
                                                             ster
-  179 000000BC 4770            bx               lr
-  180 000000BE         
-  181 000000BE         ; Function to turn OFF LED 2 (Pin 5)
-  182 000000BE         LED_ETHERNET_2_OFF
-  183 000000BE B500            push             {lr}        ; Save link registe
+  189 000000C4 4770            bx               lr
+  190 000000C6         
+  191 000000C6         ; Function to turn OFF LED 2 (Pin 5)
+  192 000000C6         LED_ETHERNET_2_OFF
+  193 000000C6 B500            push             {lr}        ; Save link registe
                                                             r
-  184 000000C0 4E18            ldr              r6, = GPIO_PORTF_BASE + (PIN3<<
+  194 000000C8 4E29            ldr              r6, = GPIO_PORTF_BASE + (PIN3<<
 2)
-  185 000000C2 F04F 0200       mov              r2, #0x00   ; Clear value
-  186 000000C6 6032            str              r2, [r6]    ; Turn off LED 2
-  187 000000C8 F85D EB04       pop              {lr}        ; Restore link regi
-                                                            ster
-  188 000000CC 4770            bx               lr
-  189 000000CE         
-  190 000000CE         LED_ETHERNET_ALL_INVERT
-  191 000000CE B500            push             {lr}        ; Save link registe
-                                                            r
-  192 000000D0 4E15            ldr              r6, = GPIO_PORTF_BASE + (BROCHE
 
 
 
 ARM Macro Assembler    Page 6 
 
 
+  195 000000CA F04F 0200       mov              r2, #0x00   ; Clear value
+  196 000000CE 6032            str              r2, [r6]    ; Turn off LED 2
+  197 000000D0 F85D EB04       pop              {lr}        ; Restore link regi
+                                                            ster
+  198 000000D4 4770            bx               lr
+  199 000000D6         
+  200 000000D6         LED_ETHERNET_ALL_INVERT
+  201 000000D6 B500            push             {lr}        ; Save link registe
+                                                            r
+  202 000000D8 4E26            ldr              r6, = GPIO_PORTF_BASE + (BROCHE
 2_3<<2)
-  193 000000D2 6830            ldr              r0, [r6]    ; Load current LED 
+  203 000000DA 6830            ldr              r0, [r6]    ; Load current LED 
                                                             state into r0
-  194 000000D4 280C            cmp              r0, #BROCHE2_3
-  195 000000D6 D002            beq              TURN_ON     ; If LED is off (==
+  204 000000DC 280C            cmp              r0, #BROCHE2_3
+  205 000000DE D002            beq              TURN_ON     ; If LED is off (==
                                                             0), branch to turn 
                                                             on
-  196 000000D8 F7FF FFFE       bl               LED_ETHERNET_ALL_OFF ; If LED i
+  206 000000E0 F7FF FFFE       bl               LED_ETHERNET_ALL_OFF ; If LED i
                                                             s on, turn it off
-  197 000000DC E001            b                DONE
-  198 000000DE         TURN_ON
-  199 000000DE F7FF FFFE       bl               LED_ETHERNET_ALL_ON 
+  207 000000E4 E001            b                DONE
+  208 000000E6         TURN_ON
+  209 000000E6 F7FF FFFE       bl               LED_ETHERNET_ALL_ON 
                                                             ; Turn LED on
-  200 000000E2         DONE
-  201 000000E2 F85D EB04       pop              {lr}
-  202 000000E6 4770            bx               lr
-  203 000000E8         
-  204 000000E8         ; Function to turn ON both LEDs
-  205 000000E8         LED_ETHERNET_ALL_ON
-  206 000000E8 B500            push             {lr}        ; Save link registe
+  210 000000EA         DONE
+  211 000000EA F85D EB04       pop              {lr}
+  212 000000EE 4770            bx               lr
+  213 000000F0         
+  214 000000F0         ; Function to turn ON both LEDs
+  215 000000F0         LED_ETHERNET_ALL_ON
+  216 000000F0 B500            push             {lr}        ; Save link registe
                                                             r
-  207 000000EA 4E0F            ldr              r6, = GPIO_PORTF_BASE + (BROCHE
+  217 000000F2 4E20            ldr              r6, = GPIO_PORTF_BASE + (BROCHE
 2_3<<2)
-  208 000000EC F04F 0300       mov              r3, #0x00
-  209 000000F0 6033            str              r3, [r6]    ; Turn on both LEDs
+  218 000000F4 F04F 0300       mov              r3, #0x00
+  219 000000F8 6033            str              r3, [r6]    ; Turn on both LEDs
                                                             
-  210 000000F2 F85D EB04       pop              {lr}        ; Restore link regi
+  220 000000FA F85D EB04       pop              {lr}        ; Restore link regi
                                                             ster
-  211 000000F6 4770            bx               lr
-  212 000000F8         
-  213 000000F8         ; Function to turn OFF both LEDs
-  214 000000F8         LED_ETHERNET_ALL_OFF
-  215 000000F8 B500            push             {lr}        ; Save link registe
+  221 000000FE 4770            bx               lr
+  222 00000100         
+  223 00000100         ; Function to turn OFF both LEDs
+  224 00000100         LED_ETHERNET_ALL_OFF
+  225 00000100 B500            push             {lr}        ; Save link registe
                                                             r
-  216 000000FA 4E0B            ldr              r6, = GPIO_PORTF_BASE + (BROCHE
+  226 00000102 4E1C            ldr              r6, = GPIO_PORTF_BASE + (BROCHE
 2_3<<2)
-  217 000000FC F04F 020C       mov              r2, #BROCHE2_3
-  218 00000100 6032            str              r2, [r6]    ; Turn off both LED
+  227 00000104 F04F 020C       mov              r2, #BROCHE2_3
+  228 00000108 6032            str              r2, [r6]    ; Turn off both LED
                                                             s
-  219 00000102 F85D EB04       pop              {lr}        ; Restore link regi
+  229 0000010A F85D EB04       pop              {lr}        ; Restore link regi
                                                             ster
-  220 00000106 4770            bx               lr
-  221 00000108         
-  222 00000108         
-  223 00000108                 END
+  230 0000010E 4770            bx               lr
+  231 00000110         
+  232 00000110         
+  233 00000110         SET_LED_ACCORDING_TO_SPEED_MODE
+  234 00000110 B500            push             {lr}
+  235 00000112 4919            ldr              r1, =CURRENT_MODE
+  236 00000114 6809            ldr              r1, [r1]    ; Load current mode
+                                                            
+
+
+
+ARM Macro Assembler    Page 7 
+
+
+  237 00000116         
+  238 00000116         
+  239 00000116 4A19            ldr              r2, =SPEED_MODE_SLOW
+  240 00000118 4291            cmp              r1, r2
+  241 0000011A B402            push             {r1}
+  242 0000011C BF08 F7FF 
+              FFFE             BLEQ             LED_ALL_OFF
+  243 00000122 BC02            pop              {r1}
+  244 00000124         
+  245 00000124 4A16            ldr              r2, =SPEED_MODE_NORMAL
+  246 00000126 4291            cmp              r1, r2
+  247 00000128 B402            push             {r1}
+  248 0000012A BF08 F7FF 
+              FFFE             BLEQ             LED_2_ON
+  249 00000130 BC02            pop              {r1}
+  250 00000132         
+  251 00000132 4A14            ldr              r2, =SPEED_MODE_FAST
+  252 00000134 4291            cmp              r1, r2
+  253 00000136 B402            push             {r1}
+  254 00000138 BF08 F7FF 
+              FFFE             BLEQ             LED_1_ON
+  255 0000013E BC02            pop              {r1}
+  256 00000140         
+  257 00000140 4A11            ldr              r2, =SPEED_MODE_FASTEST
+  258 00000142 4291            cmp              r1, r2
+  259 00000144 B402            push             {r1}
+  260 00000146 BF08 F7FF 
+              FFFE             BLEQ             LED_ALL_ON
+  261 0000014C BC02            pop              {r1}
+  262 0000014E         
+  263 0000014E         
+  264 0000014E F85D EB04       pop              {lr}
+  265 00000152 4770            BX               lr
+  266 00000154         
+  267 00000154                 END
               40025400 
               4002551C 
               40025500 
@@ -383,17 +438,16 @@ ARM Macro Assembler    Page 6
               40025010 
               40025020 
               40025030 
+              00000000 
+              00000000 
+              00000000 
+              00000000 
+              00000000 
 Command Line: --debug --xref --diag_suppress=9931 --cpu=Cortex-M3 --apcs=interw
 ork --depend=.\objects\rk_config_led.d -o.\objects\rk_config_led.o -I.\RTE\_Tar
 get_1 -IC:\Users\cypbo\AppData\Local\Arm\Packs\ARM\CMSIS\5.5.1\CMSIS\Core\Inclu
 de -IC:\Users\cypbo\AppData\Local\Arm\Packs\ARM\CMSIS\5.5.1\Device\ARM\ARMCM3\I
 nclude --predefine="__EVAL SETA 1" --predefine="__UVISION_VERSION SETA 528" --p
-
-
-
-ARM Macro Assembler    Page 7 
-
-
 redefine="_RTE_ SETA 1" --predefine="ARMCM3 SETA 1" --list=.\listings\rk_config
 _led.lst RK_Config_Led.s
 
@@ -410,150 +464,164 @@ Symbol: .text
    Uses
       None
 Comment: .text unused
-DONE 000000E2
+DONE 000000EA
 
 Symbol: DONE
    Definitions
-      At line 200 in file RK_Config_Led.s
+      At line 210 in file RK_Config_Led.s
    Uses
-      At line 197 in file RK_Config_Led.s
+      At line 207 in file RK_Config_Led.s
 Comment: DONE used once
-LED_1_OFF 0000004E
+LED_1_OFF 00000056
 
 Symbol: LED_1_OFF
    Definitions
-      At line 118 in file RK_Config_Led.s
+      At line 128 in file RK_Config_Led.s
    Uses
       At line 56 in file RK_Config_Led.s
-Comment: LED_1_OFF used once
+      At line 120 in file RK_Config_Led.s
+
 LED_1_ON 0000002E
 
 Symbol: LED_1_ON
    Definitions
-      At line 100 in file RK_Config_Led.s
+      At line 108 in file RK_Config_Led.s
    Uses
       At line 53 in file RK_Config_Led.s
-Comment: LED_1_ON used once
-LED_2_OFF 0000005E
+      At line 254 in file RK_Config_Led.s
+
+LED_2_OFF 00000066
 
 Symbol: LED_2_OFF
    Definitions
-      At line 127 in file RK_Config_Led.s
+      At line 137 in file RK_Config_Led.s
    Uses
       At line 57 in file RK_Config_Led.s
-Comment: LED_2_OFF used once
-LED_2_ON 0000003E
+      At line 110 in file RK_Config_Led.s
+
+LED_2_ON 00000042
 
 Symbol: LED_2_ON
    Definitions
-      At line 109 in file RK_Config_Led.s
+      At line 118 in file RK_Config_Led.s
    Uses
       At line 54 in file RK_Config_Led.s
-Comment: LED_2_ON used once
-LED_ALL_OFF 0000007E
+      At line 248 in file RK_Config_Led.s
+
+LED_ALL_OFF 00000086
 
 Symbol: LED_ALL_OFF
    Definitions
-      At line 145 in file RK_Config_Led.s
+      At line 155 in file RK_Config_Led.s
    Uses
       At line 58 in file RK_Config_Led.s
-Comment: LED_ALL_OFF used once
-LED_ALL_ON 0000006E
-
-Symbol: LED_ALL_ON
 
 
 
 ARM Macro Assembler    Page 2 Alphabetic symbol ordering
 Relocatable symbols
 
+      At line 242 in file RK_Config_Led.s
+
+LED_ALL_ON 00000076
+
+Symbol: LED_ALL_ON
    Definitions
-      At line 136 in file RK_Config_Led.s
+      At line 146 in file RK_Config_Led.s
    Uses
       At line 55 in file RK_Config_Led.s
-Comment: LED_ALL_ON used once
+      At line 260 in file RK_Config_Led.s
+
 LED_CONFIG_ALL 00000000
 
 Symbol: LED_CONFIG_ALL
    Definitions
-      At line 73 in file RK_Config_Led.s
+      At line 81 in file RK_Config_Led.s
    Uses
       At line 52 in file RK_Config_Led.s
 Comment: LED_CONFIG_ALL used once
-LED_ETHERNET_1_OFF 000000AE
+LED_ETHERNET_1_OFF 000000B6
 
 Symbol: LED_ETHERNET_1_OFF
    Definitions
-      At line 173 in file RK_Config_Led.s
+      At line 183 in file RK_Config_Led.s
    Uses
       At line 61 in file RK_Config_Led.s
 Comment: LED_ETHERNET_1_OFF used once
-LED_ETHERNET_1_ON 0000008E
+LED_ETHERNET_1_ON 00000096
 
 Symbol: LED_ETHERNET_1_ON
    Definitions
-      At line 155 in file RK_Config_Led.s
+      At line 165 in file RK_Config_Led.s
    Uses
       At line 62 in file RK_Config_Led.s
 Comment: LED_ETHERNET_1_ON used once
-LED_ETHERNET_2_OFF 000000BE
+LED_ETHERNET_2_OFF 000000C6
 
 Symbol: LED_ETHERNET_2_OFF
    Definitions
-      At line 182 in file RK_Config_Led.s
+      At line 192 in file RK_Config_Led.s
    Uses
       At line 63 in file RK_Config_Led.s
 Comment: LED_ETHERNET_2_OFF used once
-LED_ETHERNET_2_ON 0000009E
+LED_ETHERNET_2_ON 000000A6
 
 Symbol: LED_ETHERNET_2_ON
    Definitions
-      At line 164 in file RK_Config_Led.s
+      At line 174 in file RK_Config_Led.s
    Uses
       At line 64 in file RK_Config_Led.s
 Comment: LED_ETHERNET_2_ON used once
-LED_ETHERNET_ALL_INVERT 000000CE
+LED_ETHERNET_ALL_INVERT 000000D6
 
 Symbol: LED_ETHERNET_ALL_INVERT
    Definitions
-      At line 190 in file RK_Config_Led.s
+      At line 200 in file RK_Config_Led.s
    Uses
       At line 65 in file RK_Config_Led.s
 Comment: LED_ETHERNET_ALL_INVERT used once
-LED_ETHERNET_ALL_OFF 000000F8
-
-Symbol: LED_ETHERNET_ALL_OFF
-   Definitions
-      At line 214 in file RK_Config_Led.s
-   Uses
 
 
 
 ARM Macro Assembler    Page 3 Alphabetic symbol ordering
 Relocatable symbols
 
-      At line 60 in file RK_Config_Led.s
-      At line 95 in file RK_Config_Led.s
-      At line 196 in file RK_Config_Led.s
+LED_ETHERNET_ALL_OFF 00000100
 
-LED_ETHERNET_ALL_ON 000000E8
+Symbol: LED_ETHERNET_ALL_OFF
+   Definitions
+      At line 224 in file RK_Config_Led.s
+   Uses
+      At line 60 in file RK_Config_Led.s
+      At line 103 in file RK_Config_Led.s
+      At line 206 in file RK_Config_Led.s
+
+LED_ETHERNET_ALL_ON 000000F0
 
 Symbol: LED_ETHERNET_ALL_ON
    Definitions
-      At line 205 in file RK_Config_Led.s
+      At line 215 in file RK_Config_Led.s
    Uses
       At line 59 in file RK_Config_Led.s
-      At line 199 in file RK_Config_Led.s
+      At line 209 in file RK_Config_Led.s
 
-TURN_ON 000000DE
+SET_LED_ACCORDING_TO_SPEED_MODE 00000110
+
+Symbol: SET_LED_ACCORDING_TO_SPEED_MODE
+   Definitions
+      At line 233 in file RK_Config_Led.s
+   Uses
+      At line 67 in file RK_Config_Led.s
+Comment: SET_LED_ACCORDING_TO_SPEED_MODE used once
+TURN_ON 000000E6
 
 Symbol: TURN_ON
    Definitions
-      At line 198 in file RK_Config_Led.s
+      At line 208 in file RK_Config_Led.s
    Uses
-      At line 195 in file RK_Config_Led.s
+      At line 205 in file RK_Config_Led.s
 Comment: TURN_ON used once
-17 symbols
+18 symbols
 
 
 
@@ -566,12 +634,12 @@ Symbol: BROCHE2_3
    Definitions
       At line 41 in file RK_Config_Led.s
    Uses
-      At line 82 in file RK_Config_Led.s
-      At line 192 in file RK_Config_Led.s
-      At line 194 in file RK_Config_Led.s
-      At line 207 in file RK_Config_Led.s
-      At line 216 in file RK_Config_Led.s
+      At line 90 in file RK_Config_Led.s
+      At line 202 in file RK_Config_Led.s
+      At line 204 in file RK_Config_Led.s
       At line 217 in file RK_Config_Led.s
+      At line 226 in file RK_Config_Led.s
+      At line 227 in file RK_Config_Led.s
 
 BROCHE4_5 00000030
 
@@ -579,10 +647,10 @@ Symbol: BROCHE4_5
    Definitions
       At line 36 in file RK_Config_Led.s
    Uses
-      At line 81 in file RK_Config_Led.s
-      At line 138 in file RK_Config_Led.s
-      At line 139 in file RK_Config_Led.s
-      At line 147 in file RK_Config_Led.s
+      At line 89 in file RK_Config_Led.s
+      At line 148 in file RK_Config_Led.s
+      At line 149 in file RK_Config_Led.s
+      At line 157 in file RK_Config_Led.s
 
 BROCHE6 00000040
 
@@ -614,7 +682,7 @@ Symbol: GPIO_O_DEN
    Definitions
       At line 26 in file RK_Config_Led.s
    Uses
-      At line 88 in file RK_Config_Led.s
+      At line 96 in file RK_Config_Led.s
 Comment: GPIO_O_DEN used once
 GPIO_O_DIR 00000400
 
@@ -628,7 +696,7 @@ Absolute symbols
    Definitions
       At line 18 in file RK_Config_Led.s
    Uses
-      At line 85 in file RK_Config_Led.s
+      At line 93 in file RK_Config_Led.s
 Comment: GPIO_O_DIR used once
 GPIO_O_DR2R 00000500
 
@@ -636,7 +704,7 @@ Symbol: GPIO_O_DR2R
    Definitions
       At line 22 in file RK_Config_Led.s
    Uses
-      At line 91 in file RK_Config_Led.s
+      At line 99 in file RK_Config_Led.s
 Comment: GPIO_O_DR2R used once
 GPIO_PORTD_BASE 40007000
 
@@ -652,22 +720,22 @@ Symbol: GPIO_PORTF_BASE
    Definitions
       At line 11 in file RK_Config_Led.s
    Uses
-      At line 85 in file RK_Config_Led.s
-      At line 88 in file RK_Config_Led.s
-      At line 91 in file RK_Config_Led.s
-      At line 102 in file RK_Config_Led.s
+      At line 93 in file RK_Config_Led.s
+      At line 96 in file RK_Config_Led.s
+      At line 99 in file RK_Config_Led.s
       At line 111 in file RK_Config_Led.s
-      At line 120 in file RK_Config_Led.s
-      At line 129 in file RK_Config_Led.s
-      At line 138 in file RK_Config_Led.s
-      At line 147 in file RK_Config_Led.s
+      At line 121 in file RK_Config_Led.s
+      At line 130 in file RK_Config_Led.s
+      At line 139 in file RK_Config_Led.s
+      At line 148 in file RK_Config_Led.s
       At line 157 in file RK_Config_Led.s
-      At line 166 in file RK_Config_Led.s
-      At line 175 in file RK_Config_Led.s
-      At line 184 in file RK_Config_Led.s
-      At line 192 in file RK_Config_Led.s
-      At line 207 in file RK_Config_Led.s
-      At line 216 in file RK_Config_Led.s
+      At line 167 in file RK_Config_Led.s
+      At line 176 in file RK_Config_Led.s
+      At line 185 in file RK_Config_Led.s
+      At line 194 in file RK_Config_Led.s
+      At line 202 in file RK_Config_Led.s
+      At line 217 in file RK_Config_Led.s
+      At line 226 in file RK_Config_Led.s
 
 PIN2 00000004
 
@@ -675,9 +743,9 @@ Symbol: PIN2
    Definitions
       At line 39 in file RK_Config_Led.s
    Uses
-      At line 157 in file RK_Config_Led.s
-      At line 158 in file RK_Config_Led.s
-      At line 175 in file RK_Config_Led.s
+      At line 167 in file RK_Config_Led.s
+      At line 168 in file RK_Config_Led.s
+      At line 185 in file RK_Config_Led.s
 
 PIN3 00000008
 
@@ -691,9 +759,9 @@ ARM Macro Assembler    Page 3 Alphabetic symbol ordering
 Absolute symbols
 
    Uses
-      At line 166 in file RK_Config_Led.s
-      At line 167 in file RK_Config_Led.s
-      At line 184 in file RK_Config_Led.s
+      At line 176 in file RK_Config_Led.s
+      At line 177 in file RK_Config_Led.s
+      At line 194 in file RK_Config_Led.s
 
 PIN4 00000010
 
@@ -701,9 +769,9 @@ Symbol: PIN4
    Definitions
       At line 32 in file RK_Config_Led.s
    Uses
-      At line 102 in file RK_Config_Led.s
-      At line 103 in file RK_Config_Led.s
-      At line 120 in file RK_Config_Led.s
+      At line 111 in file RK_Config_Led.s
+      At line 112 in file RK_Config_Led.s
+      At line 130 in file RK_Config_Led.s
 
 PIN5 00000020
 
@@ -711,9 +779,9 @@ Symbol: PIN5
    Definitions
       At line 34 in file RK_Config_Led.s
    Uses
-      At line 111 in file RK_Config_Led.s
-      At line 112 in file RK_Config_Led.s
-      At line 129 in file RK_Config_Led.s
+      At line 121 in file RK_Config_Led.s
+      At line 122 in file RK_Config_Led.s
+      At line 139 in file RK_Config_Led.s
 
 SYSCTL_RCGC2 400FE108
 
@@ -730,13 +798,53 @@ Comment: SYSCTL_RCGC2 unused
 ARM Macro Assembler    Page 1 Alphabetic symbol ordering
 External symbols
 
+CURRENT_MODE 00000000
+
+Symbol: CURRENT_MODE
+   Definitions
+      At line 75 in file RK_Config_Led.s
+   Uses
+      At line 235 in file RK_Config_Led.s
+Comment: CURRENT_MODE used once
 ENABLE_STACK_SYSCTL_RCGC2 00000000
 
 Symbol: ENABLE_STACK_SYSCTL_RCGC2
    Definitions
-      At line 67 in file RK_Config_Led.s
+      At line 69 in file RK_Config_Led.s
    Uses
-      At line 78 in file RK_Config_Led.s
+      At line 86 in file RK_Config_Led.s
 Comment: ENABLE_STACK_SYSCTL_RCGC2 used once
-1 symbol
-369 symbols in table
+SPEED_MODE_FAST 00000000
+
+Symbol: SPEED_MODE_FAST
+   Definitions
+      At line 73 in file RK_Config_Led.s
+   Uses
+      At line 251 in file RK_Config_Led.s
+Comment: SPEED_MODE_FAST used once
+SPEED_MODE_FASTEST 00000000
+
+Symbol: SPEED_MODE_FASTEST
+   Definitions
+      At line 74 in file RK_Config_Led.s
+   Uses
+      At line 257 in file RK_Config_Led.s
+Comment: SPEED_MODE_FASTEST used once
+SPEED_MODE_NORMAL 00000000
+
+Symbol: SPEED_MODE_NORMAL
+   Definitions
+      At line 72 in file RK_Config_Led.s
+   Uses
+      At line 245 in file RK_Config_Led.s
+Comment: SPEED_MODE_NORMAL used once
+SPEED_MODE_SLOW 00000000
+
+Symbol: SPEED_MODE_SLOW
+   Definitions
+      At line 71 in file RK_Config_Led.s
+   Uses
+      At line 239 in file RK_Config_Led.s
+Comment: SPEED_MODE_SLOW used once
+6 symbols
+375 symbols in table

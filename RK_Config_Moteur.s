@@ -59,19 +59,39 @@ PWM1GENA		EQU		PWM_BASE+0x0A0
 PWM1GENB		EQU		PWM_BASE+0x0A4
 
 
-NORMAL_SPEED			EQU		0x05	; Valeures plus petites => Vitesse plus rapide exemple 0x192
-								; Valeures plus grandes => Vitesse moins rapide exemple 0x1B2
-
-LOW_SPEED		EQU		0xFF
-
-							
-DUREE_SHORT 		EQU 	0x002FFFFF
-
+DUREE_SHORT 		EQU 	0x003FFFFF
 DUREE_ULTRA_SHORT	EQU		0x000FFFFF
+
+
+TURBO_SPEED      EQU     0x001    
+HIGH_SPEED       EQU     0x06C    
+MEDIUM_SPEED     EQU     0x0D7    
+MODERATE_SPEED   EQU     0x142    
+LOW_SPEED        EQU     0x1B0    
+
+
+SPEED_MODE_SLOW      EQU     0    ; Uses LOW_SPEED and MODERATE_SPEED
+SPEED_MODE_NORMAL    EQU     1    ; Uses MODERATE_SPEED and MEDIUM_SPEED
+SPEED_MODE_FAST      EQU     2    ; Uses MEDIUM_SPEED and HIGH_SPEED
+SPEED_MODE_FASTEST   EQU     3    ; Uses HIGH_SPEED and TURBO_SPEED					
+
+
+		AREA    MyData, DATA, READWRITE
+CURRENT_MODE    SPACE   4
+
+
+
 		AREA    |.text|, CODE, READONLY
 		ENTRY
 		
-		;; The EXPORT command specifies that a symbol can be accessed by other shared objects or executables.
+
+		EXPORT	SPEED_MODE_SLOW   
+		EXPORT	SPEED_MODE_NORMAL 
+		EXPORT	SPEED_MODE_FAST   
+		EXPORT	SPEED_MODE_FASTEST					
+		EXPORT	CURRENT_MODE
+
+
 		EXPORT	MOTEUR_INIT
 		EXPORT	MOTEUR_DROIT_ON
 		EXPORT  MOTEUR_DROIT_OFF
@@ -88,14 +108,17 @@ DUREE_ULTRA_SHORT	EQU		0x000FFFFF
 		EXPORT	LOOP_SHORT
 		EXPORT	TRAJECTORY_LEFT
 		EXPORT	TRAJECTORY_RIGHT
-
+		
+		EXPORT	INCREASE_SPEED_MODE
+		EXPORT	REDUCE_SPEED_MODE
 
 		IMPORT 	LED_ALL_ON
 		IMPORT 	LED_ALL_OFF
         IMPORT 	LED_ETHERNET_ALL_ON
         IMPORT 	LED_ETHERNET_ALL_OFF
 		IMPORT	LED_ETHERNET_ALL_INVERT
-		
+		IMPORT  SET_LED_ACCORDING_TO_SPEED_MODE
+
 
 		IMPORT	ENABLE_STACK_SYSCTL_RCGC2
 		IMPORT	RETURN
@@ -174,7 +197,7 @@ MOTEUR_INIT
 		str	r0,[r6]
 		
 		ldr	r6, =PWM0CMPA ;Valeur rapport cyclique : pour 10% => 1C2h si clock = 0F42400
-		mov	r0, #NORMAL_SPEED
+		mov	r0, #LOW_SPEED
 		str	r0, [r6]  
 		
 		ldr	r6, =PWM0CMPB ;PWM0CMPB recoit meme valeur. (rapport cyclique depend de CMPA)
@@ -265,6 +288,14 @@ MOTEUR_INIT
 		mov	r0, #0x02
 		str	r0,[r6]		
 		
+
+
+		ldr     r0, =CURRENT_MODE		
+		mov		r1, #SPEED_MODE_SLOW
+		str     r1, [r0]
+
+
+
 		pop	{lr}
 		BX	LR	; FIN du sous programme d'init.
 
@@ -386,6 +417,81 @@ RESET_SHORT_LOOP_AND_BLINK_LED
 DONE
 		bx      lr
 
+
+INCREASE_SPEED_MODE
+        push    {r0-r1, lr}
+        ldr     r0, =CURRENT_MODE
+        ldr     r1, [r0]            
+        cmp     r1, #3              
+        beq     DONE_INCREASE
+        add     r1, #1             
+        str     r1, [r0]            
+		BL		SET_LED_ACCORDING_TO_SPEED_MODE
+DONE_INCREASE
+        pop     {r0-r1, lr}
+        bx      lr
+
+REDUCE_SPEED_MODE
+        push    {r0-r1, lr}
+		; Load current mode
+        ldr     r0, =CURRENT_MODE
+        
+		ldr     r1, [r0]      
+		; Check if already at min     
+        cmp     r1, #0             
+        beq     DONE_REDUCE
+		; Reduce mode
+        sub     r1, #1             
+		; Store new mode
+        str     r1, [r0]           
+		BL		SET_LED_ACCORDING_TO_SPEED_MODE
+DONE_REDUCE
+        pop     {r0-r1, lr}
+        bx      lr
+
+GET_SPEED_FOR_MODE
+        push    {r1-r2, lr}
+		; Load current mode
+        ldr     r1, =CURRENT_MODE
+        ldr     r1, [r1]           
+        
+        ; r0 contains speed type (0 for lower speed, 1 for higher speed)
+        cmp     r1, #SPEED_MODE_SLOW
+        beq     SLOW_MODE
+        cmp     r1, #SPEED_MODE_NORMAL
+        beq     NORMAL_MODE
+        cmp     r1, #SPEED_MODE_FAST
+        beq     FAST_MODE
+        b       FASTEST_MODE      
+
+SLOW_MODE
+        cmp     r0, #0
+        moveq   r0, #LOW_SPEED
+        movne   r0, #MODERATE_SPEED
+        b       DONE_GET_SPEED
+
+NORMAL_MODE
+        cmp     r0, #0
+        moveq   r0, #MODERATE_SPEED
+        movne   r0, #MEDIUM_SPEED
+        b       DONE_GET_SPEED
+
+FAST_MODE
+        cmp     r0, #0
+        moveq   r0, #MEDIUM_SPEED
+        movne   r0, #HIGH_SPEED
+        b       DONE_GET_SPEED
+
+FASTEST_MODE
+        cmp     r0, #0
+        moveq   r0, #HIGH_SPEED
+        movne   r0, #TURBO_SPEED
+
+DONE_GET_SPEED
+        pop     {r1-r2, lr}
+        bx      lr
+
+
 SET_SPEED
 		pop {r6} ; Speed Adress 
 		pop	{r0} ; Speed value
@@ -393,48 +499,69 @@ SET_SPEED
 		bx	lr
 
 TRAJECTORY_LEFT
-		push {lr}
-		mov r0, #LOW_SPEED
-		push {r0}
-		ldr r0, =PWM1CMPA
-		push {r0}
-		BL  SET_SPEED
-		mov r0, #NORMAL_SPEED
-		push {r0} 
-		ldr r0, =PWM0CMPA
-		push {r0}
-		BL  SET_SPEED
-		pop {lr}
-		BX  lr
- 
+        push    {r0-r1, lr}
+
+		; Get lower speed
+        mov     r0, #0             
+        bl      GET_SPEED_FOR_MODE
+        push    {r0}
+        ldr     r0, =PWM1CMPA 
+        push    {r0}
+        bl      SET_SPEED
+        
+		; Get higher speed
+        mov     r0, #1             
+        bl      GET_SPEED_FOR_MODE
+        push    {r0}
+        ldr     r0, =PWM0CMPA
+        push    {r0}
+        bl      SET_SPEED
+
+        pop     {r0-r1, lr}
+        bx      lr
+
+
 TRAJECTORY_RIGHT
-		push {lr}
-		mov r0, #LOW_SPEED
-		push {r0}
-		ldr r0, =PWM0CMPA 
-		push {r0}
-		BL  SET_SPEED
-		mov r0, #NORMAL_SPEED
-		push {r0}
-		ldr r0, =PWM1CMPA
-		push {r0}
-		BL  SET_SPEED
-		pop {lr}
-		BX  lr
+        push    {r0-r1, lr}
+		; Get lower speed
+        mov     r0, #0             
+        bl      GET_SPEED_FOR_MODE
+        push    {r0}
+        ldr     r0, =PWM0CMPA 
+        push    {r0}
+        bl      SET_SPEED
+        
+
+		; Get higher speed
+        mov     r0, #1             
+        bl      GET_SPEED_FOR_MODE
+        push    {r0}
+        ldr     r0, =PWM1CMPA
+        push    {r0}
+        bl      SET_SPEED
+
+
+        pop     {r0-r1, lr}
+        bx      lr
 
 TRAJECTORY_STRAIGHT
-		push {lr}
-		mov r0, #NORMAL_SPEED
-		push {r0}
-		ldr r0, =PWM0CMPA 
-		push {r0}
-		BL  SET_SPEED
-		mov r0, #NORMAL_SPEED
-		push {r0}
-		ldr r0, =PWM1CMPA
-		push {r0}
-		BL  SET_SPEED
-		pop {lr}
-		BX  lr
+		push    {r0-r1, lr}
+		; Get higher speed
+        mov     r0, #1           
+        bl      GET_SPEED_FOR_MODE
+        push    {r0}
+        ldr     r0, =PWM0CMPA 
+        push    {r0}
+        bl      SET_SPEED
+        
+		; Get higher speed
+        mov     r0, #1             
+        bl      GET_SPEED_FOR_MODE
+        push    {r0}
+        ldr     r0, =PWM1CMPA
+        push    {r0}
+        bl      SET_SPEED
+        pop     {r0-r1, lr}
+        bx      lr
 
 		END

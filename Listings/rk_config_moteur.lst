@@ -161,533 +161,681 @@ ARM Macro Assembler    Page 3
                                EQU              PWM_BASE+0x0A4
    60 00000000         
    61 00000000         
-   62 00000000 00000005 
-                       NORMAL_SPEED
-                               EQU              0x05        ; Valeures plus pet
-                                                            ites => Vitesse plu
-                                                            s rapide exemple 0x
-                                                            192
-   63 00000000         ; Valeures plus grandes => Vitesse moins rapide exemple 
-                       0x1B2
-   64 00000000         
-   65 00000000 000000FF 
-                       LOW_SPEED
-                               EQU              0xFF
-   66 00000000         
-   67 00000000         
-   68 00000000 002FFFFF 
+   62 00000000 003FFFFF 
                        DUREE_SHORT
-                               EQU              0x002FFFFF
-   69 00000000         
-   70 00000000 000FFFFF 
+                               EQU              0x003FFFFF
+   63 00000000 000FFFFF 
                        DUREE_ULTRA_SHORT
                                EQU              0x000FFFFF
-   71 00000000                 AREA             |.text|, CODE, READONLY
-   72 00000000                 ENTRY
-   73 00000000         
-   74 00000000         ;; The EXPORT command specifies that a symbol can be acc
-                       essed by other shared objects or executables.
-   75 00000000                 EXPORT           MOTEUR_INIT
-   76 00000000                 EXPORT           MOTEUR_DROIT_ON
-   77 00000000                 EXPORT           MOTEUR_DROIT_OFF
-   78 00000000                 EXPORT           MOTEUR_DROIT_AVANT
-   79 00000000                 EXPORT           MOTEUR_DROIT_ARRIERE
-   80 00000000                 EXPORT           MOTEUR_DROIT_INVERSE
+   64 00000000         
+   65 00000000         
+   66 00000000 00000001 
+                       TURBO_SPEED
+                               EQU              0x001
+   67 00000000 0000006C 
+                       HIGH_SPEED
+                               EQU              0x06C
+   68 00000000 000000D7 
+                       MEDIUM_SPEED
+                               EQU              0x0D7
+   69 00000000 00000142 
+                       MODERATE_SPEED
+                               EQU              0x142
+   70 00000000 000001B0 
+                       LOW_SPEED
+                               EQU              0x1B0
+   71 00000000         
+   72 00000000         
+   73 00000000 00000000 
+                       SPEED_MODE_SLOW
+                               EQU              0           ; Uses LOW_SPEED an
+                                                            d MODERATE_SPEED
+   74 00000000 00000001 
+                       SPEED_MODE_NORMAL
+                               EQU              1           ; Uses MODERATE_SPE
 
 
 
 ARM Macro Assembler    Page 4 
 
 
-   81 00000000                 EXPORT           MOTEUR_GAUCHE_ON
-   82 00000000                 EXPORT           MOTEUR_GAUCHE_OFF
-   83 00000000                 EXPORT           MOTEUR_GAUCHE_AVANT
-   84 00000000                 EXPORT           MOTEUR_GAUCHE_ARRIERE
-   85 00000000                 EXPORT           MOTEUR_GAUCHE_INVERSE
-   86 00000000                 EXPORT           CALL_MOTEUR_RECULER_SHORT
-   87 00000000                 EXPORT           MOTEUR_RECULER_SHORT
-   88 00000000                 EXPORT           LOOP_SHORT
-   89 00000000                 EXPORT           TRAJECTORY_LEFT
-   90 00000000                 EXPORT           TRAJECTORY_RIGHT
-   91 00000000         
-   92 00000000         
-   93 00000000                 IMPORT           LED_ALL_ON
-   94 00000000                 IMPORT           LED_ALL_OFF
-   95 00000000                 IMPORT           LED_ETHERNET_ALL_ON
-   96 00000000                 IMPORT           LED_ETHERNET_ALL_OFF
-   97 00000000                 IMPORT           LED_ETHERNET_ALL_INVERT
-   98 00000000         
-   99 00000000         
-  100 00000000                 IMPORT           ENABLE_STACK_SYSCTL_RCGC2
-  101 00000000                 IMPORT           RETURN
-  102 00000000         
-  103 00000000         MOTEUR_INIT
-  104 00000000 B500            push             {lr}
-  105 00000002 4E8E            ldr              r6, = SYSCTL_RCGC0
-  106 00000004 6830            ldr              r0, [R6]
-  107 00000006 F440 1080       ORR              r0, r0, #0x00100000 ;;bit 20 = 
-                                                            PWM recoit clock: O
-                                                            N (p271) 
-  108 0000000A 6030            str              r0, [r6]
-  109 0000000C         
-  110 0000000C         ;ROM_SysCtlPWMClockSet(SYSCTL_PWMDIV_1);PWM clock is pro
-                       cessor clock /1
-  111 0000000C         ;Je ne fais rien car par defaut = OK!!
-  112 0000000C         ;*(int *) (0x400FE060)= *(int *)(0x400FE060)...;
-  113 0000000C         
-  114 0000000C         ;RCGC2 :  Enable port D GPIO(p291 ) car Moteur Droit sur
-                        port D 
-  115 0000000C F04F 0008       mov              r0, #0x08   ;; Enable clock sur
-                                                             GPIO D
-  116 00000010 B401            push             {r0}
-  117 00000012 F7FF FFFE       BL               ENABLE_STACK_SYSCTL_RCGC2
-  118 00000016         
-  119 00000016         ;MOT2 : RCGC2 :  Enable port H GPIO  (2eme moteurs)
-  120 00000016 F04F 0080       mov              r0, #0x80   ;; Enable clock sur
-                                                             GPIO H
-  121 0000001A B401            push             {r0}
-  122 0000001C F7FF FFFE       BL               ENABLE_STACK_SYSCTL_RCGC2
-  123 00000020         
-  124 00000020         
-  125 00000020         ;;Pin muxing pour PWM, port D, reg. GPIOPCTL(p444), 4bit
-                       s de PCM0=0001<=>PWM (voir p1261)
-  126 00000020         ;;il faut mettre 1 pour avoir PD0=PWM0 et PD1=PWM1
-  127 00000020 4E87            ldr              r6, = GPIOPCTL_D
-  128 00000022         ;ldr r0, [R6]   ;; *(int *)(0x40007000+0x0000052C)=1;
-  129 00000022         ;ORR r0, r0, #0x01 ;; Port D, pin 1 = PWM 
-  130 00000022 F04F 0001       mov              r0, #0x01
-  131 00000026 6030            str              r0, [r6]
-  132 00000028         
+                                                            ED and MEDIUM_SPEED
+                                                            
+   75 00000000 00000002 
+                       SPEED_MODE_FAST
+                               EQU              2           ; Uses MEDIUM_SPEED
+                                                             and HIGH_SPEED
+   76 00000000 00000003 
+                       SPEED_MODE_FASTEST
+                               EQU              3           ; Uses HIGH_SPEED a
+                                                            nd TURBO_SPEED     
+                                                            
+   77 00000000         
+   78 00000000         
+   79 00000000                 AREA             MyData, DATA, READWRITE
+   80 00000000 00 00 00 
+              00       CURRENT_MODE
+                               SPACE            4
+   81 00000004         
+   82 00000004         
+   83 00000004         
+   84 00000004                 AREA             |.text|, CODE, READONLY
+   85 00000000                 ENTRY
+   86 00000000         
+   87 00000000         
+   88 00000000                 EXPORT           SPEED_MODE_SLOW
+   89 00000000                 EXPORT           SPEED_MODE_NORMAL
+   90 00000000                 EXPORT           SPEED_MODE_FAST
+   91 00000000                 EXPORT           SPEED_MODE_FASTEST
+   92 00000000                 EXPORT           CURRENT_MODE
+   93 00000000         
+   94 00000000         
+   95 00000000                 EXPORT           MOTEUR_INIT
+   96 00000000                 EXPORT           MOTEUR_DROIT_ON
+   97 00000000                 EXPORT           MOTEUR_DROIT_OFF
+   98 00000000                 EXPORT           MOTEUR_DROIT_AVANT
+   99 00000000                 EXPORT           MOTEUR_DROIT_ARRIERE
+  100 00000000                 EXPORT           MOTEUR_DROIT_INVERSE
+  101 00000000                 EXPORT           MOTEUR_GAUCHE_ON
+  102 00000000                 EXPORT           MOTEUR_GAUCHE_OFF
+  103 00000000                 EXPORT           MOTEUR_GAUCHE_AVANT
+  104 00000000                 EXPORT           MOTEUR_GAUCHE_ARRIERE
+  105 00000000                 EXPORT           MOTEUR_GAUCHE_INVERSE
+  106 00000000                 EXPORT           CALL_MOTEUR_RECULER_SHORT
+  107 00000000                 EXPORT           MOTEUR_RECULER_SHORT
+  108 00000000                 EXPORT           LOOP_SHORT
+  109 00000000                 EXPORT           TRAJECTORY_LEFT
+  110 00000000                 EXPORT           TRAJECTORY_RIGHT
+  111 00000000         
+  112 00000000                 EXPORT           INCREASE_SPEED_MODE
+  113 00000000                 EXPORT           REDUCE_SPEED_MODE
+  114 00000000         
+  115 00000000                 IMPORT           LED_ALL_ON
+  116 00000000                 IMPORT           LED_ALL_OFF
+  117 00000000                 IMPORT           LED_ETHERNET_ALL_ON
+  118 00000000                 IMPORT           LED_ETHERNET_ALL_OFF
+  119 00000000                 IMPORT           LED_ETHERNET_ALL_INVERT
+  120 00000000                 IMPORT           SET_LED_ACCORDING_TO_SPEED_MODE
+  121 00000000         
+  122 00000000         
 
 
 
 ARM Macro Assembler    Page 5 
 
 
-  133 00000028         ;;MOT2 : Pin muxing pour PWM, port H, reg. GPIOPCTL(p444
+  123 00000000                 IMPORT           ENABLE_STACK_SYSCTL_RCGC2
+  124 00000000                 IMPORT           RETURN
+  125 00000000         
+  126 00000000         MOTEUR_INIT
+  127 00000000 B500            push             {lr}
+  128 00000002 4EB5            ldr              r6, = SYSCTL_RCGC0
+  129 00000004 6830            ldr              r0, [R6]
+  130 00000006 F440 1080       ORR              r0, r0, #0x00100000 ;;bit 20 = 
+                                                            PWM recoit clock: O
+                                                            N (p271) 
+  131 0000000A 6030            str              r0, [r6]
+  132 0000000C         
+  133 0000000C         ;ROM_SysCtlPWMClockSet(SYSCTL_PWMDIV_1);PWM clock is pro
+                       cessor clock /1
+  134 0000000C         ;Je ne fais rien car par defaut = OK!!
+  135 0000000C         ;*(int *) (0x400FE060)= *(int *)(0x400FE060)...;
+  136 0000000C         
+  137 0000000C         ;RCGC2 :  Enable port D GPIO(p291 ) car Moteur Droit sur
+                        port D 
+  138 0000000C F04F 0008       mov              r0, #0x08   ;; Enable clock sur
+                                                             GPIO D
+  139 00000010 B401            push             {r0}
+  140 00000012 F7FF FFFE       BL               ENABLE_STACK_SYSCTL_RCGC2
+  141 00000016         
+  142 00000016         ;MOT2 : RCGC2 :  Enable port H GPIO  (2eme moteurs)
+  143 00000016 F04F 0080       mov              r0, #0x80   ;; Enable clock sur
+                                                             GPIO H
+  144 0000001A B401            push             {r0}
+  145 0000001C F7FF FFFE       BL               ENABLE_STACK_SYSCTL_RCGC2
+  146 00000020         
+  147 00000020         
+  148 00000020         ;;Pin muxing pour PWM, port D, reg. GPIOPCTL(p444), 4bit
+                       s de PCM0=0001<=>PWM (voir p1261)
+  149 00000020         ;;il faut mettre 1 pour avoir PD0=PWM0 et PD1=PWM1
+  150 00000020 4EAE            ldr              r6, = GPIOPCTL_D
+  151 00000022         ;ldr r0, [R6]   ;; *(int *)(0x40007000+0x0000052C)=1;
+  152 00000022         ;ORR r0, r0, #0x01 ;; Port D, pin 1 = PWM 
+  153 00000022 F04F 0001       mov              r0, #0x01
+  154 00000026 6030            str              r0, [r6]
+  155 00000028         
+  156 00000028         ;;MOT2 : Pin muxing pour PWM, port H, reg. GPIOPCTL(p444
                        ), 4bits de PCM0=0001<=>PWM (voir p1261)
-  134 00000028         ;;il faut mettre mux = 2 pour avoir PH0=PWM2 et PH1=PWM3
+  157 00000028         ;;il faut mettre mux = 2 pour avoir PH0=PWM2 et PH1=PWM3
                        
-  135 00000028 4E86            ldr              r6, = GPIOPCTL_H
-  136 0000002A F04F 0002       mov              r0, #0x02
-  137 0000002E 6030            str              r0, [r6]
-  138 00000030         
-  139 00000030         ;;Alternate Function Select (p 426), PD0 utilise alernat
+  158 00000028 4EAD            ldr              r6, = GPIOPCTL_H
+  159 0000002A F04F 0002       mov              r0, #0x02
+  160 0000002E 6030            str              r0, [r6]
+  161 00000030         
+  162 00000030         ;;Alternate Function Select (p 426), PD0 utilise alernat
                        e fonction (PWM au dessus)
-  140 00000030         ;;donc PD0 = 1
-  141 00000030 4E85            ldr              r6, = GPIOAFSEL_D
-  142 00000032 6830            ldr              r0, [R6]    ;*(int *)(0x4000700
+  163 00000030         ;;donc PD0 = 1
+  164 00000030 4EAC            ldr              r6, = GPIOAFSEL_D
+  165 00000032 6830            ldr              r0, [R6]    ;*(int *)(0x4000700
                                                             0+0x00000420)= *(in
                                                             t *)(0x40007000+0x0
                                                             0000420) | 0x000000
                                                             01;
-  143 00000034 F040 0001       ORR              r0, r0, #0x01 ;
-  144 00000038 6030            str              r0, [r6]
-  145 0000003A         
-  146 0000003A         ;;MOT2 : Alternate Function Select (p 426), PH0 utilise 
-                       PWM donc Alternate funct
-  147 0000003A         ;;donc PH0 = 1
-  148 0000003A 4E84            ldr              r6, = GPIOAFSEL_H
-  149 0000003C 6830            ldr              r0, [R6]    ;*(int *)(0x4000700
-                                                            0+0x00000420)= *(in
-                                                            t *)(0x40007000+0x0
-                                                            0000420) | 0x000000
-                                                            01;
-  150 0000003E F040 0001       ORR              r0, r0, #0x01 ;
-  151 00000042 6030            str              r0, [r6]
-  152 00000044         
-  153 00000044         ;;-----------PWM0 pour moteur 1 connect� � PD0
-  154 00000044         ;;PWM0 produit PWM0 et PWM1 output
-  155 00000044         ;;Config Modes PWM0 + mode GenA + mode GenB
-  156 00000044 4E82            ldr              r6, = PWM0CTL
-  157 00000046 F04F 0002       mov              r0, #2      ;Mode up-down-up-do
-                                                            wn, pas synchro
-  158 0000004A 6030            str              r0, [r6]
-  159 0000004C         
-  160 0000004C 4E81            ldr              r6, =PWM0GENA ;en decomptage, q
-                                                            d comparateurA = co
-                                                            mpteur => sortie pw
-                                                            mA=0
-  161 0000004E         ;en comptage croissant, qd comparateurA = compteur => so
-                       rtie pwmA=1
-  162 0000004E F04F 00B0       mov              r0, #0x0B0  ;0B0=10110000 => AC
-                                                            TCMPBD=00 (B down:r
-                                                            ien), ACTCMPBU=00(B
-                                                             up rien)
-  163 00000052 6030            str              r0, [r6]    ;ACTCMPAD=10 (A dow
-                                                            n:pwmA low), ACTCMP
-                                                            AU=11 (A up:pwmA hi
-                                                            gh) , ACTLOAD=00,AC
-                                                            TZERO=00  
-  164 00000054         
-  165 00000054 4E80            ldr              r6, =PWM0GENB ;en comptage croi
-                                                            ssant, qd comparate
-                                                            urB = compteur => s
+  166 00000034 F040 0001       ORR              r0, r0, #0x01 ;
+  167 00000038 6030            str              r0, [r6]
 
 
 
 ARM Macro Assembler    Page 6 
 
 
-                                                            ortie pwmA=1
-  166 00000056 F44F 6030       mov              r0, #0x0B00 ;en decomptage, qd 
-                                                            comparateurB = comp
-                                                            teur => sortie pwmB
-                                                            =0
-  167 0000005A 6030            str              r0, [r6]
-  168 0000005C         ;Config Compteur, comparateur A et comparateur B
-  169 0000005C         ;;#define PWM_PERIOD (ROM_SysCtlClockGet() / 16000),
-  170 0000005C         ;;en mesure : SysCtlClockGet=0F42400h, /16=0x3E8, 
-  171 0000005C         ;;on divise par 2 car moteur 6v sur alim 12v
-  172 0000005C 4E7F            ldr              r6, =PWM0LOAD ;PWM0LOAD=periode
-                                                            /2 =0x1F4
-  173 0000005E F44F 70FA       mov              r0, #0x1F4
-  174 00000062 6030            str              r0,[r6]
-  175 00000064         
-  176 00000064 4E7E            ldr              r6, =PWM0CMPA ;Valeur rapport c
-                                                            yclique : pour 10% 
-                                                            => 1C2h si clock = 
-                                                            0F42400
-  177 00000066 F04F 0005       mov              r0, #NORMAL_SPEED
-  178 0000006A 6030            str              r0, [r6]
-  179 0000006C         
-  180 0000006C 4E7D            ldr              r6, =PWM0CMPB ;PWM0CMPB recoit 
-                                                            meme valeur. (rappo
-                                                            rt cyclique depend 
-                                                            de CMPA)
-  181 0000006E F44F 70FA       mov              r0, #0x1F4
-  182 00000072 6030            str              r0, [r6]
-  183 00000074         
-  184 00000074         ;Control PWM : active PWM Generator 0 (p1167): Enable+up
-                       /down + Enable counter debug mod
-  185 00000074 4E76            ldr              r6, =PWM0CTL
-  186 00000076 6830            ldr              r0, [r6]
-  187 00000078 F040 0007       ORR              r0, r0, #0x07
-  188 0000007C 6030            str              r0, [r6]
-  189 0000007E         
-  190 0000007E         ;;-----------PWM2 pour moteur 2 connect� � PH0
-  191 0000007E         ;;PWM1block produit PWM2 et PWM3 output
-  192 0000007E         ;;Config Modes PWM2 + mode GenA + mode GenB
-  193 0000007E 4E7A            ldr              r6, = PWM1CTL
-  194 00000080 F04F 0002       mov              r0, #2      ;Mode up-down-up-do
+  168 0000003A         
+  169 0000003A         ;;MOT2 : Alternate Function Select (p 426), PH0 utilise 
+                       PWM donc Alternate funct
+  170 0000003A         ;;donc PH0 = 1
+  171 0000003A 4EAB            ldr              r6, = GPIOAFSEL_H
+  172 0000003C 6830            ldr              r0, [R6]    ;*(int *)(0x4000700
+                                                            0+0x00000420)= *(in
+                                                            t *)(0x40007000+0x0
+                                                            0000420) | 0x000000
+                                                            01;
+  173 0000003E F040 0001       ORR              r0, r0, #0x01 ;
+  174 00000042 6030            str              r0, [r6]
+  175 00000044         
+  176 00000044         ;;-----------PWM0 pour moteur 1 connect� � PD0
+  177 00000044         ;;PWM0 produit PWM0 et PWM1 output
+  178 00000044         ;;Config Modes PWM0 + mode GenA + mode GenB
+  179 00000044 4EA9            ldr              r6, = PWM0CTL
+  180 00000046 F04F 0002       mov              r0, #2      ;Mode up-down-up-do
                                                             wn, pas synchro
-  195 00000084 6030            str              r0, [r6]    ;*(int *)(0x4002800
-                                                            0+0x040)=2;
-  196 00000086         
-  197 00000086 4E79            ldr              r6, =PWM1GENA ;en decomptage, q
+  181 0000004A 6030            str              r0, [r6]
+  182 0000004C         
+  183 0000004C 4EA8            ldr              r6, =PWM0GENA ;en decomptage, q
                                                             d comparateurA = co
                                                             mpteur => sortie pw
                                                             mA=0
-  198 00000088         ;en comptage croissant, qd comparateurA = compteur => so
+  184 0000004E         ;en comptage croissant, qd comparateurA = compteur => so
                        rtie pwmA=1
-  199 00000088 F04F 00B0       mov              r0, #0x0B0  ;0B0=10110000 => AC
+  185 0000004E F04F 00B0       mov              r0, #0x0B0  ;0B0=10110000 => AC
                                                             TCMPBD=00 (B down:r
                                                             ien), ACTCMPBU=00(B
                                                              up rien)
-  200 0000008C 6030            str              r0, [r6]    ;ACTCMPAD=10 (A dow
+  186 00000052 6030            str              r0, [r6]    ;ACTCMPAD=10 (A dow
                                                             n:pwmA low), ACTCMP
                                                             AU=11 (A up:pwmA hi
                                                             gh) , ACTLOAD=00,AC
+                                                            TZERO=00  
+  187 00000054         
+  188 00000054 4EA7            ldr              r6, =PWM0GENB ;en comptage croi
+                                                            ssant, qd comparate
+                                                            urB = compteur => s
+                                                            ortie pwmA=1
+  189 00000056 F44F 6030       mov              r0, #0x0B00 ;en decomptage, qd 
+                                                            comparateurB = comp
+                                                            teur => sortie pwmB
+                                                            =0
+  190 0000005A 6030            str              r0, [r6]
+  191 0000005C         ;Config Compteur, comparateur A et comparateur B
+  192 0000005C         ;;#define PWM_PERIOD (ROM_SysCtlClockGet() / 16000),
+  193 0000005C         ;;en mesure : SysCtlClockGet=0F42400h, /16=0x3E8, 
+  194 0000005C         ;;on divise par 2 car moteur 6v sur alim 12v
+  195 0000005C 4EA6            ldr              r6, =PWM0LOAD ;PWM0LOAD=periode
+                                                            /2 =0x1F4
+  196 0000005E F44F 70FA       mov              r0, #0x1F4
+  197 00000062 6030            str              r0,[r6]
+  198 00000064         
+  199 00000064 4EA5            ldr              r6, =PWM0CMPA ;Valeur rapport c
+                                                            yclique : pour 10% 
+                                                            => 1C2h si clock = 
+                                                            0F42400
 
 
 
 ARM Macro Assembler    Page 7 
 
 
+  200 00000066 F44F 70D8       mov              r0, #LOW_SPEED
+  201 0000006A 6030            str              r0, [r6]
+  202 0000006C         
+  203 0000006C 4EA4            ldr              r6, =PWM0CMPB ;PWM0CMPB recoit 
+                                                            meme valeur. (rappo
+                                                            rt cyclique depend 
+                                                            de CMPA)
+  204 0000006E F44F 70FA       mov              r0, #0x1F4
+  205 00000072 6030            str              r0, [r6]
+  206 00000074         
+  207 00000074         ;Control PWM : active PWM Generator 0 (p1167): Enable+up
+                       /down + Enable counter debug mod
+  208 00000074 4E9D            ldr              r6, =PWM0CTL
+  209 00000076 6830            ldr              r0, [r6]
+  210 00000078 F040 0007       ORR              r0, r0, #0x07
+  211 0000007C 6030            str              r0, [r6]
+  212 0000007E         
+  213 0000007E         ;;-----------PWM2 pour moteur 2 connect� � PH0
+  214 0000007E         ;;PWM1block produit PWM2 et PWM3 output
+  215 0000007E         ;;Config Modes PWM2 + mode GenA + mode GenB
+  216 0000007E 4EA1            ldr              r6, = PWM1CTL
+  217 00000080 F04F 0002       mov              r0, #2      ;Mode up-down-up-do
+                                                            wn, pas synchro
+  218 00000084 6030            str              r0, [r6]    ;*(int *)(0x4002800
+                                                            0+0x040)=2;
+  219 00000086         
+  220 00000086 4EA0            ldr              r6, =PWM1GENA ;en decomptage, q
+                                                            d comparateurA = co
+                                                            mpteur => sortie pw
+                                                            mA=0
+  221 00000088         ;en comptage croissant, qd comparateurA = compteur => so
+                       rtie pwmA=1
+  222 00000088 F04F 00B0       mov              r0, #0x0B0  ;0B0=10110000 => AC
+                                                            TCMPBD=00 (B down:r
+                                                            ien), ACTCMPBU=00(B
+                                                             up rien)
+  223 0000008C 6030            str              r0, [r6]    ;ACTCMPAD=10 (A dow
+                                                            n:pwmA low), ACTCMP
+                                                            AU=11 (A up:pwmA hi
+                                                            gh) , ACTLOAD=00,AC
                                                             TZERO=00  
-  201 0000008E         
-  202 0000008E         ;*(int *)(0x40028000+0x060)=0x0B0; //
-  203 0000008E 4E78            ldr              r6, =PWM1GENB ;*(int *)(0x40028
+  224 0000008E         
+  225 0000008E         ;*(int *)(0x40028000+0x060)=0x0B0; //
+  226 0000008E 4E9F            ldr              r6, =PWM1GENB ;*(int *)(0x40028
                                                             000+0x064)=0x0B00;
-  204 00000090 F44F 6030       mov              r0, #0x0B00 ;en decomptage, qd 
+  227 00000090 F44F 6030       mov              r0, #0x0B00 ;en decomptage, qd 
                                                             comparateurB = comp
                                                             teur => sortie pwmB
                                                             =0
-  205 00000094 6030            str              r0, [r6]    ;en comptage croiss
+  228 00000094 6030            str              r0, [r6]    ;en comptage croiss
                                                             ant, qd comparateur
                                                             B = compteur => sor
                                                             tie pwmA=1
-  206 00000096         ;Config Compteur, comparateur A et comparateur B
-  207 00000096         ;;#define PWM_PERIOD (ROM_SysCtlClockGet() / 16000),
-  208 00000096         ;;en mesure : SysCtlClockGet=0F42400h, /16=0x3E8, 
-  209 00000096         ;;on divise par 2 car moteur 6v sur alim 12v
-  210 00000096         ;*(int *)(0x40028000+0x050)=0x1F4; //PWM0LOAD=periode/2 
+  229 00000096         ;Config Compteur, comparateur A et comparateur B
+  230 00000096         ;;#define PWM_PERIOD (ROM_SysCtlClockGet() / 16000),
+  231 00000096         ;;en mesure : SysCtlClockGet=0F42400h, /16=0x3E8, 
+  232 00000096         ;;on divise par 2 car moteur 6v sur alim 12v
+  233 00000096         ;*(int *)(0x40028000+0x050)=0x1F4; //PWM0LOAD=periode/2 
                        =0x1F4
-  211 00000096 4E77            ldr              r6, =PWM1LOAD
-  212 00000098 F44F 70FA       mov              r0, #0x1F4
-  213 0000009C 6030            str              r0,[r6]
-  214 0000009E         
-  215 0000009E 4E76            ldr              r6, =PWM1CMPA ;Valeur rapport c
-                                                            yclique : pour 10% 
-                                                            => 1C2h si clock = 
-                                                            0F42400
-  216 000000A0 F04F 00FF       mov              r0, #LOW_SPEED
-  217 000000A4 6030            str              r0, [r6]    ;*(int *)(0x4002800
-                                                            0+0x058)=0x01C2;
-  218 000000A6         
-  219 000000A6 4E75            ldr              r6, =PWM1CMPB ;PWM0CMPB recoit 
-                                                            meme valeur. (CMPA 
-                                                            depend du rapport c
-                                                            yclique)
-  220 000000A8 F44F 70FA       mov              r0, #0x1F4  ; *(int *)(0x400280
-                                                            00+0x05C)=0x1F4; 
-  221 000000AC 6030            str              r0, [r6]
-  222 000000AE         
-  223 000000AE         ;Control PWM : active PWM Generator 0 (p1167): Enable+up
-                       /down + Enable counter debug mod
-  224 000000AE 4E6E            ldr              r6, =PWM1CTL
-  225 000000B0 6830            ldr              r0, [r6]    ;*(int *) (0x400280
-                                                            00+0x40)= *(int *)(
-                                                            0x40028000+0x40) | 
-                                                            0x07;
-  226 000000B2 F040 0007       ORR              r0, r0, #0x07
-  227 000000B6 6030            str              r0, [r6]
-  228 000000B8         
-  229 000000B8         ;;-----Fin config des PWMs   
-  230 000000B8         
-  231 000000B8         ;PORT D OUTPUT pin0 (pwm)=pin1(direction)=pin2(slow deca
-                       y)=pin5(12v enable)
-  232 000000B8 4E71            ldr              r6, =GPIODIR_D
-  233 000000BA 6830            ldr              r0, [r6]
-  234 000000BC F040 0027       ORR              r0, #(GPIO_0+GPIO_1+GPIO_2+GPIO
-_5)
-  235 000000C0 6030            str              r0,[r6]
-  236 000000C2         ;Port D, 2mA les meme
 
 
 
 ARM Macro Assembler    Page 8 
 
 
-  237 000000C2 4E70            ldr              r6, =GPIODR2R_D ; 
-  238 000000C4 6830            ldr              r0, [r6]
-  239 000000C6 F040 0027       ORR              r0, #(GPIO_0+GPIO_1+GPIO_2+GPIO
+  234 00000096 4E9E            ldr              r6, =PWM1LOAD
+  235 00000098 F44F 70FA       mov              r0, #0x1F4
+  236 0000009C 6030            str              r0,[r6]
+  237 0000009E         
+  238 0000009E 4E9D            ldr              r6, =PWM1CMPA ;Valeur rapport c
+                                                            yclique : pour 10% 
+                                                            => 1C2h si clock = 
+                                                            0F42400
+  239 000000A0 F44F 70D8       mov              r0, #LOW_SPEED
+  240 000000A4 6030            str              r0, [r6]    ;*(int *)(0x4002800
+                                                            0+0x058)=0x01C2;
+  241 000000A6         
+  242 000000A6 4E9C            ldr              r6, =PWM1CMPB ;PWM0CMPB recoit 
+                                                            meme valeur. (CMPA 
+                                                            depend du rapport c
+                                                            yclique)
+  243 000000A8 F44F 70FA       mov              r0, #0x1F4  ; *(int *)(0x400280
+                                                            00+0x05C)=0x1F4; 
+  244 000000AC 6030            str              r0, [r6]
+  245 000000AE         
+  246 000000AE         ;Control PWM : active PWM Generator 0 (p1167): Enable+up
+                       /down + Enable counter debug mod
+  247 000000AE 4E95            ldr              r6, =PWM1CTL
+  248 000000B0 6830            ldr              r0, [r6]    ;*(int *) (0x400280
+                                                            00+0x40)= *(int *)(
+                                                            0x40028000+0x40) | 
+                                                            0x07;
+  249 000000B2 F040 0007       ORR              r0, r0, #0x07
+  250 000000B6 6030            str              r0, [r6]
+  251 000000B8         
+  252 000000B8         ;;-----Fin config des PWMs   
+  253 000000B8         
+  254 000000B8         ;PORT D OUTPUT pin0 (pwm)=pin1(direction)=pin2(slow deca
+                       y)=pin5(12v enable)
+  255 000000B8 4E98            ldr              r6, =GPIODIR_D
+  256 000000BA 6830            ldr              r0, [r6]
+  257 000000BC F040 0027       ORR              r0, #(GPIO_0+GPIO_1+GPIO_2+GPIO
 _5)
-  240 000000CA 6030            str              r0,[r6]
-  241 000000CC         ;Port D, Digital Enable
-  242 000000CC 4E6E            ldr              r6, =GPIODEN_D ;
-  243 000000CE 6830            ldr              r0, [r6]
-  244 000000D0 F040 0027       ORR              r0, #(GPIO_0+GPIO_1+GPIO_2+GPIO
+  258 000000C0 6030            str              r0,[r6]
+  259 000000C2         ;Port D, 2mA les meme
+  260 000000C2 4E97            ldr              r6, =GPIODR2R_D ; 
+  261 000000C4 6830            ldr              r0, [r6]
+  262 000000C6 F040 0027       ORR              r0, #(GPIO_0+GPIO_1+GPIO_2+GPIO
 _5)
-  245 000000D4 6030            str              r0,[r6]
-  246 000000D6         ;Port D : mise � 1 de slow Decay et 12V et mise � 0 
+  263 000000CA 6030            str              r0,[r6]
+  264 000000CC         ;Port D, Digital Enable
+  265 000000CC 4E95            ldr              r6, =GPIODEN_D ;
+  266 000000CE 6830            ldr              r0, [r6]
+  267 000000D0 F040 0027       ORR              r0, #(GPIO_0+GPIO_1+GPIO_2+GPIO
+_5)
+  268 000000D4 6030            str              r0,[r6]
+  269 000000D6         ;Port D : mise � 1 de slow Decay et 12V et mise � 0 
                        pour dir et pwm
-  247 000000D6 4E6D            ldr              r6, =(GPIODATA_D+((GPIO_0+GPIO_
+  270 000000D6 4E94            ldr              r6, =(GPIODATA_D+((GPIO_0+GPIO_
 1+GPIO_2+GPIO_5)<<2))
-  248 000000D8 F04F 0024       mov              r0, #(GPIO_2+GPIO_5) ; #0x24
-  249 000000DC 6030            str              r0,[r6]
-  250 000000DE         
-  251 000000DE         ;MOT2, PH1 pour sens moteur ouput
-  252 000000DE 4E6C            ldr              r6, =GPIODIR_H
-  253 000000E0 F04F 0003       mov              r0, #0x03   ; 
-  254 000000E4 6030            str              r0,[r6]
-  255 000000E6         ;Port H, 2mA les meme
-  256 000000E6 4E6B            ldr              r6, =GPIODR2R_H
-  257 000000E8 F04F 0003       mov              r0, #0x03
-  258 000000EC 6030            str              r0,[r6]
-  259 000000EE         ;Port H, Digital Enable
-  260 000000EE 4E6A            ldr              r6, =GPIODEN_H
-  261 000000F0 F04F 0003       mov              r0, #0x03
-  262 000000F4 6030            str              r0,[r6]
-  263 000000F6         ;Port H : mise � 1 pour dir 
-  264 000000F6 4E69            ldr              r6, =(GPIODATA_H +(GPIO_1<<2))
-  265 000000F8 F04F 0002       mov              r0, #0x02
-  266 000000FC 6030            str              r0,[r6]
-  267 000000FE         
-  268 000000FE F85D EB04       pop              {lr}
-  269 00000102 4770            BX               LR          ; FIN du sous progr
-                                                            amme d'init.
-  270 00000104         
-  271 00000104         ;Enable PWM0 (bit 0) et PWM2 (bit 2) p1145 
-  272 00000104         ;Attention ici c'est les sorties PWM0 et PWM2
-  273 00000104         ;qu'on controle, pas les blocks PWM0 et PWM1!!!
-  274 00000104         MOTEUR_DROIT_ON
-  275 00000104         ;Enable sortie PWM0 (bit 0), p1145 
-  276 00000104 4E66            ldr              r6, =PWMENABLE
-  277 00000106 6830            ldr              r0, [r6]
-  278 00000108 F040 0001       orr              r0, #0x01   ;bit 0 � 1
-  279 0000010C 6030            str              r0, [r6]
-  280 0000010E 4770            BX               LR
-  281 00000110         
-  282 00000110         MOTEUR_DROIT_OFF
-  283 00000110 4E63            ldr              r6, =PWMENABLE
-  284 00000112 6830            ldr              r0, [r6]
-  285 00000114 F000 000E       and              r0, #0x0E   ;bit 0 � 0
-  286 00000118 6030            str              r0, [r6]
-  287 0000011A 4770            BX               LR
-  288 0000011C         
-  289 0000011C         MOTEUR_GAUCHE_ON
-  290 0000011C 4E60            ldr              r6, =PWMENABLE
+  271 000000D8 F04F 0024       mov              r0, #(GPIO_2+GPIO_5) ; #0x24
+  272 000000DC 6030            str              r0,[r6]
+  273 000000DE         
+  274 000000DE         ;MOT2, PH1 pour sens moteur ouput
 
 
 
 ARM Macro Assembler    Page 9 
 
 
-  291 0000011E 6830            ldr              r0, [r6]
-  292 00000120 F040 0004       orr              r0, #0x04   ;bit 2 � 1
-  293 00000124 6030            str              r0, [r6]
-  294 00000126 4770            BX               LR
-  295 00000128         
-  296 00000128         MOTEUR_GAUCHE_OFF
-  297 00000128 4E5D            ldr              r6, =PWMENABLE
-  298 0000012A 6830            ldr              r0, [r6]
-  299 0000012C F000 000B       and              r0, #0x0B   ;bit 2 � 0
-  300 00000130 6030            str              r0, [r6]
-  301 00000132 4770            BX               LR
-  302 00000134         
-  303 00000134         MOTEUR_DROIT_ARRIERE
-  304 00000134         ;Inverse Direction (GPIO_D1)
-  305 00000134 4E5B            ldr              r6, =(GPIODATA_D+(GPIO_1<<2))
-  306 00000136 F04F 0000       mov              r0, #0
-  307 0000013A 6030            str              r0,[r6]
-  308 0000013C 4770            BX               LR
-  309 0000013E         
-  310 0000013E         MOTEUR_DROIT_AVANT
-  311 0000013E         ;Inverse Direction (GPIO_D1)
-  312 0000013E 4E59            ldr              r6, =(GPIODATA_D+(GPIO_1<<2))
-  313 00000140 F04F 0002       mov              r0, #2
-  314 00000144 6030            str              r0,[r6]
-  315 00000146 4770            BX               LR
-  316 00000148         
-  317 00000148         MOTEUR_GAUCHE_ARRIERE
-  318 00000148         ;Inverse Direction (GPIO_D1)
-  319 00000148 4E54            ldr              r6, =(GPIODATA_H+(GPIO_1<<2))
-  320 0000014A F04F 0002       mov              r0, #2      ; contraire du mote
-                                                            ur Droit
-  321 0000014E 6030            str              r0,[r6]
-  322 00000150 4770            BX               LR
-  323 00000152         
-  324 00000152         MOTEUR_GAUCHE_AVANT
-  325 00000152         ;Inverse Direction (GPIO_D1)
-  326 00000152 4E52            ldr              r6, =(GPIODATA_H+(GPIO_1<<2))
-  327 00000154 F04F 0000       mov              r0, #0
-  328 00000158 6030            str              r0,[r6]
-  329 0000015A 4770            BX               LR
-  330 0000015C         
-  331 0000015C         MOTEUR_DROIT_INVERSE
-  332 0000015C         ;Inverse Direction (GPIO_D1)
-  333 0000015C 4E51            ldr              r6, =(GPIODATA_D+(GPIO_1<<2))
-  334 0000015E 6831            ldr              r1, [r6]
-  335 00000160 F081 0002       EOR              r0, r1, #GPIO_1
-  336 00000164 6030            str              r0,[r6]
-  337 00000166 4770            BX               LR
-  338 00000168         
-  339 00000168         MOTEUR_GAUCHE_INVERSE
-  340 00000168         ;Inverse Direction (GPIO_D1)
-  341 00000168 4E4C            ldr              r6, =(GPIODATA_H+(GPIO_1<<2))
-  342 0000016A 6831            ldr              r1, [r6]
-  343 0000016C F081 0002       EOR              r0, r1, #GPIO_1
-  344 00000170 6030            str              r0,[r6]
-  345 00000172 4770            BX               LR
-  346 00000174         
-  347 00000174         CALL_MOTEUR_RECULER_SHORT
-  348 00000174 B500            push             {lr}
+  275 000000DE 4E93            ldr              r6, =GPIODIR_H
+  276 000000E0 F04F 0003       mov              r0, #0x03   ; 
+  277 000000E4 6030            str              r0,[r6]
+  278 000000E6         ;Port H, 2mA les meme
+  279 000000E6 4E92            ldr              r6, =GPIODR2R_H
+  280 000000E8 F04F 0003       mov              r0, #0x03
+  281 000000EC 6030            str              r0,[r6]
+  282 000000EE         ;Port H, Digital Enable
+  283 000000EE 4E91            ldr              r6, =GPIODEN_H
+  284 000000F0 F04F 0003       mov              r0, #0x03
+  285 000000F4 6030            str              r0,[r6]
+  286 000000F6         ;Port H : mise � 1 pour dir 
+  287 000000F6 4E90            ldr              r6, =(GPIODATA_H +(GPIO_1<<2))
+  288 000000F8 F04F 0002       mov              r0, #0x02
+  289 000000FC 6030            str              r0,[r6]
+  290 000000FE         
+  291 000000FE         
+  292 000000FE         
+  293 000000FE 488F            ldr              r0, =CURRENT_MODE
+  294 00000100 F04F 0100       mov              r1, #SPEED_MODE_SLOW
+  295 00000104 6001            str              r1, [r0]
+  296 00000106         
+  297 00000106         
+  298 00000106         
+  299 00000106 F85D EB04       pop              {lr}
+  300 0000010A 4770            BX               LR          ; FIN du sous progr
+                                                            amme d'init.
+  301 0000010C         
+  302 0000010C         ;Enable PWM0 (bit 0) et PWM2 (bit 2) p1145 
+  303 0000010C         ;Attention ici c'est les sorties PWM0 et PWM2
+  304 0000010C         ;qu'on controle, pas les blocks PWM0 et PWM1!!!
+  305 0000010C         MOTEUR_DROIT_ON
+  306 0000010C         ;Enable sortie PWM0 (bit 0), p1145 
+  307 0000010C 4E8C            ldr              r6, =PWMENABLE
+  308 0000010E 6830            ldr              r0, [r6]
+  309 00000110 F040 0001       orr              r0, #0x01   ;bit 0 � 1
+  310 00000114 6030            str              r0, [r6]
+  311 00000116 4770            BX               LR
+  312 00000118         
+  313 00000118         MOTEUR_DROIT_OFF
+  314 00000118 4E89            ldr              r6, =PWMENABLE
+  315 0000011A 6830            ldr              r0, [r6]
+  316 0000011C F000 000E       and              r0, #0x0E   ;bit 0 � 0
+  317 00000120 6030            str              r0, [r6]
+  318 00000122 4770            BX               LR
+  319 00000124         
+  320 00000124         MOTEUR_GAUCHE_ON
+  321 00000124 4E86            ldr              r6, =PWMENABLE
+  322 00000126 6830            ldr              r0, [r6]
+  323 00000128 F040 0004       orr              r0, #0x04   ;bit 2 � 1
+  324 0000012C 6030            str              r0, [r6]
+  325 0000012E 4770            BX               LR
+  326 00000130         
+  327 00000130         MOTEUR_GAUCHE_OFF
+  328 00000130 4E83            ldr              r6, =PWMENABLE
+  329 00000132 6830            ldr              r0, [r6]
+  330 00000134 F000 000B       and              r0, #0x0B   ;bit 2 � 0
+  331 00000138 6030            str              r0, [r6]
+  332 0000013A 4770            BX               LR
 
 
 
 ARM Macro Assembler    Page 10 
 
 
-  349 00000176 F7FF FFFE       BL               MOTEUR_RECULER_SHORT
-  350 0000017A F85D EB04       pop              {lr}
-  351 0000017E 4770            BX               LR
-  352 00000180         
-  353 00000180         MOTEUR_RECULER_SHORT
-  354 00000180 B500            push             {lr}
-  355 00000182 F7FF FFFE       BL               MOTEUR_DROIT_ON
-  356 00000186 F7FF FFFE       BL               MOTEUR_GAUCHE_ON
-  357 0000018A F000 F845       BL               TRAJECTORY_STRAIGHT
-  358 0000018E F7FF FFFE       BL               MOTEUR_GAUCHE_ARRIERE
-  359 00000192 F7FF FFFE       BL               MOTEUR_DROIT_ARRIERE
-  360 00000196 F7FF FFFE       BL               LED_ETHERNET_ALL_ON
-  361 0000019A         
-  362 0000019A 4943            ldr              r1, =DUREE_SHORT
-  363 0000019C 4A43            ldr              r2, =DUREE_ULTRA_SHORT
-  364 0000019E E7FE            b                LOOP_SHORT
-  365 000001A0         
-  366 000001A0         
-  367 000001A0         LOOP_SHORT
-  368 000001A0 3A01            subs             r2, #1
-  369 000001A2 D1FE            bne              LOOP_SHORT
-  370 000001A4 F000 F805       BL               RESET_SHORT_LOOP_AND_BLINK_LED
-  371 000001A8 F7FF FFFE       BL               LED_ETHERNET_ALL_OFF
-  372 000001AC F85D EB04       pop              {lr}
-  373 000001B0 4770            BX               lr
-  374 000001B2         
-  375 000001B2         RESET_SHORT_LOOP_AND_BLINK_LED
-  376 000001B2 B506            push             {r1, r2, lr}
-  377 000001B4 F7FF FFFE       BL               LED_ETHERNET_ALL_INVERT
-  378 000001B8 E8BD 4006       pop              {r1, r2, lr}
-  379 000001BC         
-  380 000001BC 4A3B            ldr              r2, =DUREE_ULTRA_SHORT
-  381 000001BE 1A89            subs             r1, r2
-  382 000001C0 2900            cmp              r1, #0
-  383 000001C2 DD00            BLE              DONE
-  384 000001C4 E7FE            B                LOOP_SHORT
-  385 000001C6         
-  386 000001C6         DONE
-  387 000001C6 4770            bx               lr
-  388 000001C8         
-  389 000001C8         SET_SPEED
-  390 000001C8 BC40            pop              {r6}        ; Speed Adress 
-  391 000001CA BC01            pop              {r0}        ; Speed value
-  392 000001CC 6030            str              r0, [r6]
-  393 000001CE 4770            bx               lr
-  394 000001D0         
-  395 000001D0         TRAJECTORY_LEFT
-  396 000001D0 B500            push             {lr}
-  397 000001D2 F04F 00FF       mov              r0, #LOW_SPEED
-  398 000001D6 B401            push             {r0}
-  399 000001D8 4827            ldr              r0, =PWM1CMPA
-  400 000001DA B401            push             {r0}
-  401 000001DC F7FF FFF4       BL               SET_SPEED
-  402 000001E0 F04F 0005       mov              r0, #NORMAL_SPEED
-  403 000001E4 B401            push             {r0}
-  404 000001E6 481E            ldr              r0, =PWM0CMPA
-  405 000001E8 B401            push             {r0}
-  406 000001EA F7FF FFED       BL               SET_SPEED
-  407 000001EE F85D EB04       pop              {lr}
+  333 0000013C         
+  334 0000013C         MOTEUR_DROIT_ARRIERE
+  335 0000013C         ;Inverse Direction (GPIO_D1)
+  336 0000013C 4E81            ldr              r6, =(GPIODATA_D+(GPIO_1<<2))
+  337 0000013E F04F 0000       mov              r0, #0
+  338 00000142 6030            str              r0,[r6]
+  339 00000144 4770            BX               LR
+  340 00000146         
+  341 00000146         MOTEUR_DROIT_AVANT
+  342 00000146         ;Inverse Direction (GPIO_D1)
+  343 00000146 4E7F            ldr              r6, =(GPIODATA_D+(GPIO_1<<2))
+  344 00000148 F04F 0002       mov              r0, #2
+  345 0000014C 6030            str              r0,[r6]
+  346 0000014E 4770            BX               LR
+  347 00000150         
+  348 00000150         MOTEUR_GAUCHE_ARRIERE
+  349 00000150         ;Inverse Direction (GPIO_D1)
+  350 00000150 4E79            ldr              r6, =(GPIODATA_H+(GPIO_1<<2))
+  351 00000152 F04F 0002       mov              r0, #2      ; contraire du mote
+                                                            ur Droit
+  352 00000156 6030            str              r0,[r6]
+  353 00000158 4770            BX               LR
+  354 0000015A         
+  355 0000015A         MOTEUR_GAUCHE_AVANT
+  356 0000015A         ;Inverse Direction (GPIO_D1)
+  357 0000015A 4E77            ldr              r6, =(GPIODATA_H+(GPIO_1<<2))
+  358 0000015C F04F 0000       mov              r0, #0
+  359 00000160 6030            str              r0,[r6]
+  360 00000162 4770            BX               LR
+  361 00000164         
+  362 00000164         MOTEUR_DROIT_INVERSE
+  363 00000164         ;Inverse Direction (GPIO_D1)
+  364 00000164 4E77            ldr              r6, =(GPIODATA_D+(GPIO_1<<2))
+  365 00000166 6831            ldr              r1, [r6]
+  366 00000168 F081 0002       EOR              r0, r1, #GPIO_1
+  367 0000016C 6030            str              r0,[r6]
+  368 0000016E 4770            BX               LR
+  369 00000170         
+  370 00000170         MOTEUR_GAUCHE_INVERSE
+  371 00000170         ;Inverse Direction (GPIO_D1)
+  372 00000170 4E71            ldr              r6, =(GPIODATA_H+(GPIO_1<<2))
+  373 00000172 6831            ldr              r1, [r6]
+  374 00000174 F081 0002       EOR              r0, r1, #GPIO_1
+  375 00000178 6030            str              r0,[r6]
+  376 0000017A 4770            BX               LR
+  377 0000017C         
+  378 0000017C         CALL_MOTEUR_RECULER_SHORT
+  379 0000017C B500            push             {lr}
+  380 0000017E F7FF FFFE       BL               MOTEUR_RECULER_SHORT
+  381 00000182 F85D EB04       pop              {lr}
+  382 00000186 4770            BX               LR
+  383 00000188         
+  384 00000188         MOTEUR_RECULER_SHORT
+  385 00000188 B500            push             {lr}
+  386 0000018A F7FF FFFE       BL               MOTEUR_DROIT_ON
+  387 0000018E F7FF FFFE       BL               MOTEUR_GAUCHE_ON
+  388 00000192 F000 F88A       BL               TRAJECTORY_STRAIGHT
+  389 00000196 F7FF FFFE       BL               MOTEUR_GAUCHE_ARRIERE
+  390 0000019A F7FF FFFE       BL               MOTEUR_DROIT_ARRIERE
 
 
 
 ARM Macro Assembler    Page 11 
 
 
-  408 000001F2 4770            BX               lr
-  409 000001F4         
-  410 000001F4         TRAJECTORY_RIGHT
-  411 000001F4 B500            push             {lr}
-  412 000001F6 F04F 00FF       mov              r0, #LOW_SPEED
-  413 000001FA B401            push             {r0}
-  414 000001FC 4818            ldr              r0, =PWM0CMPA
-  415 000001FE B401            push             {r0}
-  416 00000200 F7FF FFE2       BL               SET_SPEED
-  417 00000204 F04F 0005       mov              r0, #NORMAL_SPEED
-  418 00000208 B401            push             {r0}
-  419 0000020A 481B            ldr              r0, =PWM1CMPA
-  420 0000020C B401            push             {r0}
-  421 0000020E F7FF FFDB       BL               SET_SPEED
-  422 00000212 F85D EB04       pop              {lr}
-  423 00000216 4770            BX               lr
-  424 00000218         
-  425 00000218         TRAJECTORY_STRAIGHT
-  426 00000218 B500            push             {lr}
-  427 0000021A F04F 0005       mov              r0, #NORMAL_SPEED
-  428 0000021E B401            push             {r0}
-  429 00000220 480F            ldr              r0, =PWM0CMPA
-  430 00000222 B401            push             {r0}
-  431 00000224 F7FF FFD0       BL               SET_SPEED
-  432 00000228 F04F 0005       mov              r0, #NORMAL_SPEED
-  433 0000022C B401            push             {r0}
-  434 0000022E 4812            ldr              r0, =PWM1CMPA
-  435 00000230 B401            push             {r0}
-  436 00000232 F7FF FFC9       BL               SET_SPEED
-  437 00000236 F85D EB04       pop              {lr}
-  438 0000023A 4770            BX               lr
-  439 0000023C         
-  440 0000023C                 END
-              400FE100 
+  391 0000019E F7FF FFFE       BL               LED_ETHERNET_ALL_ON
+  392 000001A2         
+  393 000001A2 4969            ldr              r1, =DUREE_SHORT
+  394 000001A4 4A69            ldr              r2, =DUREE_ULTRA_SHORT
+  395 000001A6 E7FE            b                LOOP_SHORT
+  396 000001A8         
+  397 000001A8         
+  398 000001A8         LOOP_SHORT
+  399 000001A8 3A01            subs             r2, #1
+  400 000001AA D1FE            bne              LOOP_SHORT
+  401 000001AC F000 F805       BL               RESET_SHORT_LOOP_AND_BLINK_LED
+  402 000001B0 F7FF FFFE       BL               LED_ETHERNET_ALL_OFF
+  403 000001B4 F85D EB04       pop              {lr}
+  404 000001B8 4770            BX               lr
+  405 000001BA         
+  406 000001BA         RESET_SHORT_LOOP_AND_BLINK_LED
+  407 000001BA B506            push             {r1, r2, lr}
+  408 000001BC F7FF FFFE       BL               LED_ETHERNET_ALL_INVERT
+  409 000001C0 E8BD 4006       pop              {r1, r2, lr}
+  410 000001C4         
+  411 000001C4 4A61            ldr              r2, =DUREE_ULTRA_SHORT
+  412 000001C6 1A89            subs             r1, r2
+  413 000001C8 2900            cmp              r1, #0
+  414 000001CA DD00            BLE              DONE
+  415 000001CC E7FE            B                LOOP_SHORT
+  416 000001CE         
+  417 000001CE         DONE
+  418 000001CE 4770            bx               lr
+  419 000001D0         
+  420 000001D0         
+  421 000001D0         INCREASE_SPEED_MODE
+  422 000001D0 B503            push             {r0-r1, lr}
+  423 000001D2 485A            ldr              r0, =CURRENT_MODE
+  424 000001D4 6801            ldr              r1, [r0]    ; Load current mode
+                                                            
+  425 000001D6 2903            cmp              r1, #3      ; Check if already 
+                                                            at max
+  426 000001D8 D004            beq              DONE_INCREASE
+  427 000001DA F101 0101       add              r1, #1      ; Increase mode
+  428 000001DE 6001            str              r1, [r0]    ; Store new mode
+  429 000001E0 F7FF FFFE       BL               SET_LED_ACCORDING_TO_SPEED_MODE
+  430 000001E4         DONE_INCREASE
+  431 000001E4 E8BD 4003       pop              {r0-r1, lr}
+  432 000001E8 4770            bx               lr
+  433 000001EA         
+  434 000001EA         REDUCE_SPEED_MODE
+  435 000001EA B503            push             {r0-r1, lr}
+  436 000001EC 4853            ldr              r0, =CURRENT_MODE
+  437 000001EE 6801            ldr              r1, [r0]    ; Load current mode
+                                                            
+  438 000001F0 2900            cmp              r1, #0      ; Check if already 
+                                                            at min
+  439 000001F2 D004            beq              DONE_REDUCE
+  440 000001F4 F1A1 0101       sub              r1, #1      ; Reduce mode
+  441 000001F8 6001            str              r1, [r0]    ; Store new mode
+  442 000001FA F7FF FFFE       BL               SET_LED_ACCORDING_TO_SPEED_MODE
+  443 000001FE         DONE_REDUCE
+  444 000001FE E8BD 4003       pop              {r0-r1, lr}
+  445 00000202 4770            bx               lr
+
+
+
+ARM Macro Assembler    Page 12 
+
+
+  446 00000204         
+  447 00000204         GET_SPEED_FOR_MODE
+  448 00000204 B506            push             {r1-r2, lr}
+  449 00000206 494D            ldr              r1, =CURRENT_MODE
+  450 00000208 6809            ldr              r1, [r1]    ; Load current mode
+                                                            
+  451 0000020A         
+  452 0000020A         ; r0 contains speed type (0 for lower speed, 1 for highe
+                       r speed)
+  453 0000020A 2900            cmp              r1, #SPEED_MODE_SLOW
+  454 0000020C D004            beq              SLOW_MODE
+  455 0000020E 2901            cmp              r1, #SPEED_MODE_NORMAL
+  456 00000210 D009            beq              NORMAL_MODE
+  457 00000212 2902            cmp              r1, #SPEED_MODE_FAST
+  458 00000214 D00D            beq              FAST_MODE
+  459 00000216 E011            b                FASTEST_MODE ; Default to faste
+                                                            st if unknown mode
+  460 00000218         
+  461 00000218         SLOW_MODE
+  462 00000218 2800            cmp              r0, #0
+  463 0000021A BF0C F44F 
+              70D8             moveq            r0, #LOW_SPEED
+  464 00000220 F44F 70A1       movne            r0, #MODERATE_SPEED
+  465 00000224 E00E            b                DONE_GET_SPEED
+  466 00000226         
+  467 00000226         NORMAL_MODE
+  468 00000226 2800            cmp              r0, #0
+  469 00000228 BF0C F44F 
+              70A1             moveq            r0, #MODERATE_SPEED
+  470 0000022E 20D7            movne            r0, #MEDIUM_SPEED
+  471 00000230 E008            b                DONE_GET_SPEED
+  472 00000232         
+  473 00000232         FAST_MODE
+  474 00000232 2800            cmp              r0, #0
+  475 00000234 BF0C 20D7       moveq            r0, #MEDIUM_SPEED
+  476 00000238 206C            movne            r0, #HIGH_SPEED
+  477 0000023A E003            b                DONE_GET_SPEED
+  478 0000023C         
+  479 0000023C         FASTEST_MODE
+  480 0000023C 2800            cmp              r0, #0
+  481 0000023E BF0C 206C       moveq            r0, #HIGH_SPEED
+  482 00000242 2001            movne            r0, #TURBO_SPEED
+  483 00000244         
+  484 00000244         DONE_GET_SPEED
+  485 00000244 E8BD 4006       pop              {r1-r2, lr}
+  486 00000248 4770            bx               lr
+  487 0000024A         
+  488 0000024A         
+  489 0000024A         SET_SPEED
+  490 0000024A BC40            pop              {r6}        ; Speed Adress 
+  491 0000024C BC01            pop              {r0}        ; Speed value
+  492 0000024E 6030            str              r0, [r6]
+  493 00000250 4770            bx               lr
+  494 00000252         
+  495 00000252         TRAJECTORY_LEFT
+  496 00000252 B503            push             {r0-r1, lr}
+  497 00000254 F04F 0000       mov              r0, #0      ; Get lower speed
+  498 00000258 F7FF FFD4       bl               GET_SPEED_FOR_MODE
+  499 0000025C B401            push             {r0}
+
+
+
+ARM Macro Assembler    Page 13 
+
+
+  500 0000025E 482D            ldr              r0, =PWM1CMPA
+  501 00000260 B401            push             {r0}
+  502 00000262 F7FF FFF2       bl               SET_SPEED
+  503 00000266         
+  504 00000266 F04F 0001       mov              r0, #1      ; Get higher speed
+  505 0000026A F7FF FFCB       bl               GET_SPEED_FOR_MODE
+  506 0000026E B401            push             {r0}
+  507 00000270 4822            ldr              r0, =PWM0CMPA
+  508 00000272 B401            push             {r0}
+  509 00000274 F7FF FFE9       bl               SET_SPEED
+  510 00000278 E8BD 4003       pop              {r0-r1, lr}
+  511 0000027C 4770            bx               lr
+  512 0000027E         
+  513 0000027E         
+  514 0000027E         TRAJECTORY_RIGHT
+  515 0000027E B503            push             {r0-r1, lr}
+  516 00000280 F04F 0000       mov              r0, #0      ; Get lower speed
+  517 00000284 F7FF FFBE       bl               GET_SPEED_FOR_MODE
+  518 00000288 B401            push             {r0}
+  519 0000028A 481C            ldr              r0, =PWM0CMPA
+  520 0000028C B401            push             {r0}
+  521 0000028E F7FF FFDC       bl               SET_SPEED
+  522 00000292         
+  523 00000292 F04F 0001       mov              r0, #1      ; Get higher speed
+  524 00000296 F7FF FFB5       bl               GET_SPEED_FOR_MODE
+  525 0000029A B401            push             {r0}
+  526 0000029C 481D            ldr              r0, =PWM1CMPA
+  527 0000029E B401            push             {r0}
+  528 000002A0 F7FF FFD3       bl               SET_SPEED
+  529 000002A4 E8BD 4003       pop              {r0-r1, lr}
+  530 000002A8 4770            bx               lr
+  531 000002AA         
+  532 000002AA         TRAJECTORY_STRAIGHT
+  533 000002AA B503            push             {r0-r1, lr}
+  534 000002AC F04F 0001       mov              r0, #1
+  535 000002B0 F7FF FFA8       bl               GET_SPEED_FOR_MODE
+  536 000002B4 B401            push             {r0}
+  537 000002B6 4811            ldr              r0, =PWM0CMPA
+  538 000002B8 B401            push             {r0}
+  539 000002BA F7FF FFC6       bl               SET_SPEED
+  540 000002BE         
+  541 000002BE F04F 0001       mov              r0, #1      ; Get higher speed
+  542 000002C2 F7FF FF9F       bl               GET_SPEED_FOR_MODE
+  543 000002C6 B401            push             {r0}
+  544 000002C8 4812            ldr              r0, =PWM1CMPA
+  545 000002CA B401            push             {r0}
+  546 000002CC F7FF FFBD       bl               SET_SPEED
+  547 000002D0 E8BD 4003       pop              {r0-r1, lr}
+  548 000002D4 4770            bx               lr
+  549 000002D6         
+  550 000002D6                 END
+              00 00 400FE100 
               4000752C 
               4002752C 
               40007420 
@@ -695,6 +843,12 @@ ARM Macro Assembler    Page 11
               40028040 
               40028060 
               40028064 
+
+
+
+ARM Macro Assembler    Page 14 
+
+
               40028050 
               40028058 
               4002805C 
@@ -712,15 +866,10 @@ ARM Macro Assembler    Page 11
               40027500 
               4002751C 
               40027008 
+              00000000 
               40028008 
-
-
-
-ARM Macro Assembler    Page 12 
-
-
               40007008 
-              002FFFFF 
+              003FFFFF 
               000FFFFF 
 Command Line: --debug --xref --diag_suppress=9931 --cpu=Cortex-M3 --apcs=interw
 ork --depend=.\objects\rk_config_moteur.d -o.\objects\rk_config_moteur.o -I.\RT
@@ -735,194 +884,221 @@ config_moteur.lst RK_Config_Moteur.s
 ARM Macro Assembler    Page 1 Alphabetic symbol ordering
 Relocatable symbols
 
+CURRENT_MODE 00000000
+
+Symbol: CURRENT_MODE
+   Definitions
+      At line 80 in file RK_Config_Moteur.s
+   Uses
+      At line 92 in file RK_Config_Moteur.s
+      At line 293 in file RK_Config_Moteur.s
+      At line 423 in file RK_Config_Moteur.s
+      At line 436 in file RK_Config_Moteur.s
+      At line 449 in file RK_Config_Moteur.s
+
+MyData 00000000
+
+Symbol: MyData
+   Definitions
+      At line 79 in file RK_Config_Moteur.s
+   Uses
+      None
+Comment: MyData unused
+2 symbols
+
+
+
+ARM Macro Assembler    Page 1 Alphabetic symbol ordering
+Relocatable symbols
+
 .text 00000000
 
 Symbol: .text
    Definitions
-      At line 71 in file RK_Config_Moteur.s
+      At line 84 in file RK_Config_Moteur.s
    Uses
       None
 Comment: .text unused
-CALL_MOTEUR_RECULER_SHORT 00000174
+CALL_MOTEUR_RECULER_SHORT 0000017C
 
 Symbol: CALL_MOTEUR_RECULER_SHORT
    Definitions
-      At line 347 in file RK_Config_Moteur.s
+      At line 378 in file RK_Config_Moteur.s
    Uses
-      At line 86 in file RK_Config_Moteur.s
+      At line 106 in file RK_Config_Moteur.s
 Comment: CALL_MOTEUR_RECULER_SHORT used once
-DONE 000001C6
+DONE 000001CE
 
 Symbol: DONE
    Definitions
-      At line 386 in file RK_Config_Moteur.s
+      At line 417 in file RK_Config_Moteur.s
    Uses
-      At line 383 in file RK_Config_Moteur.s
+      At line 414 in file RK_Config_Moteur.s
 Comment: DONE used once
-LOOP_SHORT 000001A0
+DONE_GET_SPEED 00000244
 
-Symbol: LOOP_SHORT
+Symbol: DONE_GET_SPEED
    Definitions
-      At line 367 in file RK_Config_Moteur.s
+      At line 484 in file RK_Config_Moteur.s
    Uses
-      At line 88 in file RK_Config_Moteur.s
-      At line 364 in file RK_Config_Moteur.s
-      At line 369 in file RK_Config_Moteur.s
-      At line 384 in file RK_Config_Moteur.s
+      At line 465 in file RK_Config_Moteur.s
+      At line 471 in file RK_Config_Moteur.s
+      At line 477 in file RK_Config_Moteur.s
 
-MOTEUR_DROIT_ARRIERE 00000134
+DONE_INCREASE 000001E4
 
-Symbol: MOTEUR_DROIT_ARRIERE
+Symbol: DONE_INCREASE
    Definitions
-      At line 303 in file RK_Config_Moteur.s
+      At line 430 in file RK_Config_Moteur.s
    Uses
-      At line 79 in file RK_Config_Moteur.s
-      At line 359 in file RK_Config_Moteur.s
+      At line 426 in file RK_Config_Moteur.s
+Comment: DONE_INCREASE used once
+DONE_REDUCE 000001FE
 
-MOTEUR_DROIT_AVANT 0000013E
-
-Symbol: MOTEUR_DROIT_AVANT
+Symbol: DONE_REDUCE
    Definitions
-      At line 310 in file RK_Config_Moteur.s
+      At line 443 in file RK_Config_Moteur.s
    Uses
-      At line 78 in file RK_Config_Moteur.s
-Comment: MOTEUR_DROIT_AVANT used once
-MOTEUR_DROIT_INVERSE 0000015C
+      At line 439 in file RK_Config_Moteur.s
+Comment: DONE_REDUCE used once
+FASTEST_MODE 0000023C
 
-Symbol: MOTEUR_DROIT_INVERSE
+Symbol: FASTEST_MODE
    Definitions
-      At line 331 in file RK_Config_Moteur.s
+      At line 479 in file RK_Config_Moteur.s
    Uses
-      At line 80 in file RK_Config_Moteur.s
+      At line 459 in file RK_Config_Moteur.s
+Comment: FASTEST_MODE used once
+FAST_MODE 00000232
 
 
 
 ARM Macro Assembler    Page 2 Alphabetic symbol ordering
 Relocatable symbols
 
-Comment: MOTEUR_DROIT_INVERSE used once
-MOTEUR_DROIT_OFF 00000110
 
-Symbol: MOTEUR_DROIT_OFF
+Symbol: FAST_MODE
    Definitions
-      At line 282 in file RK_Config_Moteur.s
+      At line 473 in file RK_Config_Moteur.s
    Uses
-      At line 77 in file RK_Config_Moteur.s
-Comment: MOTEUR_DROIT_OFF used once
-MOTEUR_DROIT_ON 00000104
+      At line 458 in file RK_Config_Moteur.s
+Comment: FAST_MODE used once
+GET_SPEED_FOR_MODE 00000204
 
-Symbol: MOTEUR_DROIT_ON
+Symbol: GET_SPEED_FOR_MODE
    Definitions
-      At line 274 in file RK_Config_Moteur.s
+      At line 447 in file RK_Config_Moteur.s
    Uses
-      At line 76 in file RK_Config_Moteur.s
-      At line 355 in file RK_Config_Moteur.s
+      At line 498 in file RK_Config_Moteur.s
+      At line 505 in file RK_Config_Moteur.s
+      At line 517 in file RK_Config_Moteur.s
+      At line 524 in file RK_Config_Moteur.s
+      At line 535 in file RK_Config_Moteur.s
+      At line 542 in file RK_Config_Moteur.s
 
-MOTEUR_GAUCHE_ARRIERE 00000148
+INCREASE_SPEED_MODE 000001D0
 
-Symbol: MOTEUR_GAUCHE_ARRIERE
+Symbol: INCREASE_SPEED_MODE
    Definitions
-      At line 317 in file RK_Config_Moteur.s
+      At line 421 in file RK_Config_Moteur.s
    Uses
-      At line 84 in file RK_Config_Moteur.s
-      At line 358 in file RK_Config_Moteur.s
+      At line 112 in file RK_Config_Moteur.s
+Comment: INCREASE_SPEED_MODE used once
+LOOP_SHORT 000001A8
 
-MOTEUR_GAUCHE_AVANT 00000152
-
-Symbol: MOTEUR_GAUCHE_AVANT
+Symbol: LOOP_SHORT
    Definitions
-      At line 324 in file RK_Config_Moteur.s
+      At line 398 in file RK_Config_Moteur.s
    Uses
-      At line 83 in file RK_Config_Moteur.s
-Comment: MOTEUR_GAUCHE_AVANT used once
-MOTEUR_GAUCHE_INVERSE 00000168
+      At line 108 in file RK_Config_Moteur.s
+      At line 395 in file RK_Config_Moteur.s
+      At line 400 in file RK_Config_Moteur.s
+      At line 415 in file RK_Config_Moteur.s
 
-Symbol: MOTEUR_GAUCHE_INVERSE
-   Definitions
-      At line 339 in file RK_Config_Moteur.s
-   Uses
-      At line 85 in file RK_Config_Moteur.s
-Comment: MOTEUR_GAUCHE_INVERSE used once
-MOTEUR_GAUCHE_OFF 00000128
+MOTEUR_DROIT_ARRIERE 0000013C
 
-Symbol: MOTEUR_GAUCHE_OFF
+Symbol: MOTEUR_DROIT_ARRIERE
    Definitions
-      At line 296 in file RK_Config_Moteur.s
+      At line 334 in file RK_Config_Moteur.s
    Uses
-      At line 82 in file RK_Config_Moteur.s
-Comment: MOTEUR_GAUCHE_OFF used once
-MOTEUR_GAUCHE_ON 0000011C
+      At line 99 in file RK_Config_Moteur.s
+      At line 390 in file RK_Config_Moteur.s
 
-Symbol: MOTEUR_GAUCHE_ON
+MOTEUR_DROIT_AVANT 00000146
+
+Symbol: MOTEUR_DROIT_AVANT
    Definitions
-      At line 289 in file RK_Config_Moteur.s
+      At line 341 in file RK_Config_Moteur.s
    Uses
-      At line 81 in file RK_Config_Moteur.s
-      At line 356 in file RK_Config_Moteur.s
+      At line 98 in file RK_Config_Moteur.s
+Comment: MOTEUR_DROIT_AVANT used once
+MOTEUR_DROIT_INVERSE 00000164
+
+Symbol: MOTEUR_DROIT_INVERSE
 
 
 
 ARM Macro Assembler    Page 3 Alphabetic symbol ordering
 Relocatable symbols
 
-
-MOTEUR_INIT 00000000
-
-Symbol: MOTEUR_INIT
    Definitions
-      At line 103 in file RK_Config_Moteur.s
+      At line 362 in file RK_Config_Moteur.s
    Uses
-      At line 75 in file RK_Config_Moteur.s
-Comment: MOTEUR_INIT used once
-MOTEUR_RECULER_SHORT 00000180
+      At line 100 in file RK_Config_Moteur.s
+Comment: MOTEUR_DROIT_INVERSE used once
+MOTEUR_DROIT_OFF 00000118
 
-Symbol: MOTEUR_RECULER_SHORT
+Symbol: MOTEUR_DROIT_OFF
    Definitions
-      At line 353 in file RK_Config_Moteur.s
+      At line 313 in file RK_Config_Moteur.s
    Uses
-      At line 87 in file RK_Config_Moteur.s
-      At line 349 in file RK_Config_Moteur.s
+      At line 97 in file RK_Config_Moteur.s
+Comment: MOTEUR_DROIT_OFF used once
+MOTEUR_DROIT_ON 0000010C
 
-RESET_SHORT_LOOP_AND_BLINK_LED 000001B2
-
-Symbol: RESET_SHORT_LOOP_AND_BLINK_LED
+Symbol: MOTEUR_DROIT_ON
    Definitions
-      At line 375 in file RK_Config_Moteur.s
+      At line 305 in file RK_Config_Moteur.s
    Uses
-      At line 370 in file RK_Config_Moteur.s
-Comment: RESET_SHORT_LOOP_AND_BLINK_LED used once
-SET_SPEED 000001C8
+      At line 96 in file RK_Config_Moteur.s
+      At line 386 in file RK_Config_Moteur.s
 
-Symbol: SET_SPEED
+MOTEUR_GAUCHE_ARRIERE 00000150
+
+Symbol: MOTEUR_GAUCHE_ARRIERE
    Definitions
+      At line 348 in file RK_Config_Moteur.s
+   Uses
+      At line 104 in file RK_Config_Moteur.s
       At line 389 in file RK_Config_Moteur.s
-   Uses
-      At line 401 in file RK_Config_Moteur.s
-      At line 406 in file RK_Config_Moteur.s
-      At line 416 in file RK_Config_Moteur.s
-      At line 421 in file RK_Config_Moteur.s
-      At line 431 in file RK_Config_Moteur.s
-      At line 436 in file RK_Config_Moteur.s
 
-TRAJECTORY_LEFT 000001D0
+MOTEUR_GAUCHE_AVANT 0000015A
 
-Symbol: TRAJECTORY_LEFT
+Symbol: MOTEUR_GAUCHE_AVANT
    Definitions
-      At line 395 in file RK_Config_Moteur.s
+      At line 355 in file RK_Config_Moteur.s
    Uses
-      At line 89 in file RK_Config_Moteur.s
-Comment: TRAJECTORY_LEFT used once
-TRAJECTORY_RIGHT 000001F4
+      At line 103 in file RK_Config_Moteur.s
+Comment: MOTEUR_GAUCHE_AVANT used once
+MOTEUR_GAUCHE_INVERSE 00000170
 
-Symbol: TRAJECTORY_RIGHT
+Symbol: MOTEUR_GAUCHE_INVERSE
    Definitions
-      At line 410 in file RK_Config_Moteur.s
+      At line 370 in file RK_Config_Moteur.s
    Uses
-      At line 90 in file RK_Config_Moteur.s
-Comment: TRAJECTORY_RIGHT used once
-TRAJECTORY_STRAIGHT 00000218
+      At line 105 in file RK_Config_Moteur.s
+Comment: MOTEUR_GAUCHE_INVERSE used once
+MOTEUR_GAUCHE_OFF 00000130
 
-Symbol: TRAJECTORY_STRAIGHT
+Symbol: MOTEUR_GAUCHE_OFF
+   Definitions
+      At line 327 in file RK_Config_Moteur.s
+   Uses
+      At line 102 in file RK_Config_Moteur.s
+Comment: MOTEUR_GAUCHE_OFF used once
+MOTEUR_GAUCHE_ON 00000124
+
+Symbol: MOTEUR_GAUCHE_ON
    Definitions
 
 
@@ -930,33 +1106,126 @@ Symbol: TRAJECTORY_STRAIGHT
 ARM Macro Assembler    Page 4 Alphabetic symbol ordering
 Relocatable symbols
 
-      At line 425 in file RK_Config_Moteur.s
+      At line 320 in file RK_Config_Moteur.s
    Uses
-      At line 357 in file RK_Config_Moteur.s
+      At line 101 in file RK_Config_Moteur.s
+      At line 387 in file RK_Config_Moteur.s
+
+MOTEUR_INIT 00000000
+
+Symbol: MOTEUR_INIT
+   Definitions
+      At line 126 in file RK_Config_Moteur.s
+   Uses
+      At line 95 in file RK_Config_Moteur.s
+Comment: MOTEUR_INIT used once
+MOTEUR_RECULER_SHORT 00000188
+
+Symbol: MOTEUR_RECULER_SHORT
+   Definitions
+      At line 384 in file RK_Config_Moteur.s
+   Uses
+      At line 107 in file RK_Config_Moteur.s
+      At line 380 in file RK_Config_Moteur.s
+
+NORMAL_MODE 00000226
+
+Symbol: NORMAL_MODE
+   Definitions
+      At line 467 in file RK_Config_Moteur.s
+   Uses
+      At line 456 in file RK_Config_Moteur.s
+Comment: NORMAL_MODE used once
+REDUCE_SPEED_MODE 000001EA
+
+Symbol: REDUCE_SPEED_MODE
+   Definitions
+      At line 434 in file RK_Config_Moteur.s
+   Uses
+      At line 113 in file RK_Config_Moteur.s
+Comment: REDUCE_SPEED_MODE used once
+RESET_SHORT_LOOP_AND_BLINK_LED 000001BA
+
+Symbol: RESET_SHORT_LOOP_AND_BLINK_LED
+   Definitions
+      At line 406 in file RK_Config_Moteur.s
+   Uses
+      At line 401 in file RK_Config_Moteur.s
+Comment: RESET_SHORT_LOOP_AND_BLINK_LED used once
+SET_SPEED 0000024A
+
+Symbol: SET_SPEED
+   Definitions
+      At line 489 in file RK_Config_Moteur.s
+   Uses
+      At line 502 in file RK_Config_Moteur.s
+      At line 509 in file RK_Config_Moteur.s
+      At line 521 in file RK_Config_Moteur.s
+      At line 528 in file RK_Config_Moteur.s
+      At line 539 in file RK_Config_Moteur.s
+      At line 546 in file RK_Config_Moteur.s
+
+
+
+
+ARM Macro Assembler    Page 5 Alphabetic symbol ordering
+Relocatable symbols
+
+SLOW_MODE 00000218
+
+Symbol: SLOW_MODE
+   Definitions
+      At line 461 in file RK_Config_Moteur.s
+   Uses
+      At line 454 in file RK_Config_Moteur.s
+Comment: SLOW_MODE used once
+TRAJECTORY_LEFT 00000252
+
+Symbol: TRAJECTORY_LEFT
+   Definitions
+      At line 495 in file RK_Config_Moteur.s
+   Uses
+      At line 109 in file RK_Config_Moteur.s
+Comment: TRAJECTORY_LEFT used once
+TRAJECTORY_RIGHT 0000027E
+
+Symbol: TRAJECTORY_RIGHT
+   Definitions
+      At line 514 in file RK_Config_Moteur.s
+   Uses
+      At line 110 in file RK_Config_Moteur.s
+Comment: TRAJECTORY_RIGHT used once
+TRAJECTORY_STRAIGHT 000002AA
+
+Symbol: TRAJECTORY_STRAIGHT
+   Definitions
+      At line 532 in file RK_Config_Moteur.s
+   Uses
+      At line 388 in file RK_Config_Moteur.s
 Comment: TRAJECTORY_STRAIGHT used once
-21 symbols
+31 symbols
 
 
 
 ARM Macro Assembler    Page 1 Alphabetic symbol ordering
 Absolute symbols
 
-DUREE_SHORT 002FFFFF
+DUREE_SHORT 003FFFFF
 
 Symbol: DUREE_SHORT
    Definitions
-      At line 68 in file RK_Config_Moteur.s
+      At line 62 in file RK_Config_Moteur.s
    Uses
-      At line 362 in file RK_Config_Moteur.s
+      At line 393 in file RK_Config_Moteur.s
 Comment: DUREE_SHORT used once
 DUREE_ULTRA_SHORT 000FFFFF
 
 Symbol: DUREE_ULTRA_SHORT
    Definitions
-      At line 70 in file RK_Config_Moteur.s
+      At line 63 in file RK_Config_Moteur.s
    Uses
-      At line 363 in file RK_Config_Moteur.s
-      At line 380 in file RK_Config_Moteur.s
+      At line 394 in file RK_Config_Moteur.s
+      At line 411 in file RK_Config_Moteur.s
 
 GPIOAFSEL_D 40007420
 
@@ -964,7 +1233,7 @@ Symbol: GPIOAFSEL_D
    Definitions
       At line 31 in file RK_Config_Moteur.s
    Uses
-      At line 141 in file RK_Config_Moteur.s
+      At line 164 in file RK_Config_Moteur.s
 Comment: GPIOAFSEL_D used once
 GPIOAFSEL_H 40027420
 
@@ -972,7 +1241,7 @@ Symbol: GPIOAFSEL_H
    Definitions
       At line 39 in file RK_Config_Moteur.s
    Uses
-      At line 148 in file RK_Config_Moteur.s
+      At line 171 in file RK_Config_Moteur.s
 Comment: GPIOAFSEL_H used once
 GPIODATA_D 40007000
 
@@ -980,10 +1249,10 @@ Symbol: GPIODATA_D
    Definitions
       At line 26 in file RK_Config_Moteur.s
    Uses
-      At line 247 in file RK_Config_Moteur.s
-      At line 305 in file RK_Config_Moteur.s
-      At line 312 in file RK_Config_Moteur.s
-      At line 333 in file RK_Config_Moteur.s
+      At line 270 in file RK_Config_Moteur.s
+      At line 336 in file RK_Config_Moteur.s
+      At line 343 in file RK_Config_Moteur.s
+      At line 364 in file RK_Config_Moteur.s
 
 GPIODATA_H 40027000
 
@@ -991,10 +1260,10 @@ Symbol: GPIODATA_H
    Definitions
       At line 34 in file RK_Config_Moteur.s
    Uses
-      At line 264 in file RK_Config_Moteur.s
-      At line 319 in file RK_Config_Moteur.s
-      At line 326 in file RK_Config_Moteur.s
-      At line 341 in file RK_Config_Moteur.s
+      At line 287 in file RK_Config_Moteur.s
+      At line 350 in file RK_Config_Moteur.s
+      At line 357 in file RK_Config_Moteur.s
+      At line 372 in file RK_Config_Moteur.s
 
 GPIODEN_D 4000751C
 
@@ -1008,7 +1277,7 @@ Absolute symbols
 
       At line 29 in file RK_Config_Moteur.s
    Uses
-      At line 242 in file RK_Config_Moteur.s
+      At line 265 in file RK_Config_Moteur.s
 Comment: GPIODEN_D used once
 GPIODEN_H 4002751C
 
@@ -1016,7 +1285,7 @@ Symbol: GPIODEN_H
    Definitions
       At line 37 in file RK_Config_Moteur.s
    Uses
-      At line 260 in file RK_Config_Moteur.s
+      At line 283 in file RK_Config_Moteur.s
 Comment: GPIODEN_H used once
 GPIODIR_D 40007400
 
@@ -1024,7 +1293,7 @@ Symbol: GPIODIR_D
    Definitions
       At line 27 in file RK_Config_Moteur.s
    Uses
-      At line 232 in file RK_Config_Moteur.s
+      At line 255 in file RK_Config_Moteur.s
 Comment: GPIODIR_D used once
 GPIODIR_H 40027400
 
@@ -1032,7 +1301,7 @@ Symbol: GPIODIR_H
    Definitions
       At line 35 in file RK_Config_Moteur.s
    Uses
-      At line 252 in file RK_Config_Moteur.s
+      At line 275 in file RK_Config_Moteur.s
 Comment: GPIODIR_H used once
 GPIODR2R_D 40007500
 
@@ -1040,7 +1309,7 @@ Symbol: GPIODR2R_D
    Definitions
       At line 28 in file RK_Config_Moteur.s
    Uses
-      At line 237 in file RK_Config_Moteur.s
+      At line 260 in file RK_Config_Moteur.s
 Comment: GPIODR2R_D used once
 GPIODR2R_H 40027500
 
@@ -1048,7 +1317,7 @@ Symbol: GPIODR2R_H
    Definitions
       At line 36 in file RK_Config_Moteur.s
    Uses
-      At line 256 in file RK_Config_Moteur.s
+      At line 279 in file RK_Config_Moteur.s
 Comment: GPIODR2R_H used once
 GPIOPCTL_D 4000752C
 
@@ -1056,7 +1325,7 @@ Symbol: GPIOPCTL_D
    Definitions
       At line 30 in file RK_Config_Moteur.s
    Uses
-      At line 127 in file RK_Config_Moteur.s
+      At line 150 in file RK_Config_Moteur.s
 Comment: GPIOPCTL_D used once
 GPIOPCTL_H 4002752C
 
@@ -1064,7 +1333,7 @@ Symbol: GPIOPCTL_H
    Definitions
       At line 38 in file RK_Config_Moteur.s
    Uses
-      At line 135 in file RK_Config_Moteur.s
+      At line 158 in file RK_Config_Moteur.s
 
 
 
@@ -1078,10 +1347,10 @@ Symbol: GPIO_0
    Definitions
       At line 15 in file RK_Config_Moteur.s
    Uses
-      At line 234 in file RK_Config_Moteur.s
-      At line 239 in file RK_Config_Moteur.s
-      At line 244 in file RK_Config_Moteur.s
-      At line 247 in file RK_Config_Moteur.s
+      At line 257 in file RK_Config_Moteur.s
+      At line 262 in file RK_Config_Moteur.s
+      At line 267 in file RK_Config_Moteur.s
+      At line 270 in file RK_Config_Moteur.s
 
 GPIO_1 00000002
 
@@ -1089,19 +1358,19 @@ Symbol: GPIO_1
    Definitions
       At line 16 in file RK_Config_Moteur.s
    Uses
-      At line 234 in file RK_Config_Moteur.s
-      At line 239 in file RK_Config_Moteur.s
-      At line 244 in file RK_Config_Moteur.s
-      At line 247 in file RK_Config_Moteur.s
-      At line 264 in file RK_Config_Moteur.s
-      At line 305 in file RK_Config_Moteur.s
-      At line 312 in file RK_Config_Moteur.s
-      At line 319 in file RK_Config_Moteur.s
-      At line 326 in file RK_Config_Moteur.s
-      At line 333 in file RK_Config_Moteur.s
-      At line 335 in file RK_Config_Moteur.s
-      At line 341 in file RK_Config_Moteur.s
+      At line 257 in file RK_Config_Moteur.s
+      At line 262 in file RK_Config_Moteur.s
+      At line 267 in file RK_Config_Moteur.s
+      At line 270 in file RK_Config_Moteur.s
+      At line 287 in file RK_Config_Moteur.s
+      At line 336 in file RK_Config_Moteur.s
       At line 343 in file RK_Config_Moteur.s
+      At line 350 in file RK_Config_Moteur.s
+      At line 357 in file RK_Config_Moteur.s
+      At line 364 in file RK_Config_Moteur.s
+      At line 366 in file RK_Config_Moteur.s
+      At line 372 in file RK_Config_Moteur.s
+      At line 374 in file RK_Config_Moteur.s
 
 GPIO_2 00000004
 
@@ -1109,11 +1378,11 @@ Symbol: GPIO_2
    Definitions
       At line 17 in file RK_Config_Moteur.s
    Uses
-      At line 234 in file RK_Config_Moteur.s
-      At line 239 in file RK_Config_Moteur.s
-      At line 244 in file RK_Config_Moteur.s
-      At line 247 in file RK_Config_Moteur.s
-      At line 248 in file RK_Config_Moteur.s
+      At line 257 in file RK_Config_Moteur.s
+      At line 262 in file RK_Config_Moteur.s
+      At line 267 in file RK_Config_Moteur.s
+      At line 270 in file RK_Config_Moteur.s
+      At line 271 in file RK_Config_Moteur.s
 
 GPIO_5 00000020
 
@@ -1121,15 +1390,15 @@ Symbol: GPIO_5
    Definitions
       At line 18 in file RK_Config_Moteur.s
    Uses
-      At line 234 in file RK_Config_Moteur.s
-      At line 239 in file RK_Config_Moteur.s
-      At line 244 in file RK_Config_Moteur.s
-      At line 247 in file RK_Config_Moteur.s
-      At line 248 in file RK_Config_Moteur.s
+      At line 257 in file RK_Config_Moteur.s
+      At line 262 in file RK_Config_Moteur.s
+      At line 267 in file RK_Config_Moteur.s
+      At line 270 in file RK_Config_Moteur.s
+      At line 271 in file RK_Config_Moteur.s
 
-LOW_SPEED 000000FF
+HIGH_SPEED 0000006C
 
-Symbol: LOW_SPEED
+Symbol: HIGH_SPEED
 
 
 
@@ -1137,23 +1406,38 @@ ARM Macro Assembler    Page 4 Alphabetic symbol ordering
 Absolute symbols
 
    Definitions
-      At line 65 in file RK_Config_Moteur.s
+      At line 67 in file RK_Config_Moteur.s
    Uses
-      At line 216 in file RK_Config_Moteur.s
-      At line 397 in file RK_Config_Moteur.s
-      At line 412 in file RK_Config_Moteur.s
+      At line 476 in file RK_Config_Moteur.s
+      At line 481 in file RK_Config_Moteur.s
 
-NORMAL_SPEED 00000005
+LOW_SPEED 000001B0
 
-Symbol: NORMAL_SPEED
+Symbol: LOW_SPEED
    Definitions
-      At line 62 in file RK_Config_Moteur.s
+      At line 70 in file RK_Config_Moteur.s
    Uses
-      At line 177 in file RK_Config_Moteur.s
-      At line 402 in file RK_Config_Moteur.s
-      At line 417 in file RK_Config_Moteur.s
-      At line 427 in file RK_Config_Moteur.s
-      At line 432 in file RK_Config_Moteur.s
+      At line 200 in file RK_Config_Moteur.s
+      At line 239 in file RK_Config_Moteur.s
+      At line 463 in file RK_Config_Moteur.s
+
+MEDIUM_SPEED 000000D7
+
+Symbol: MEDIUM_SPEED
+   Definitions
+      At line 68 in file RK_Config_Moteur.s
+   Uses
+      At line 470 in file RK_Config_Moteur.s
+      At line 475 in file RK_Config_Moteur.s
+
+MODERATE_SPEED 00000142
+
+Symbol: MODERATE_SPEED
+   Definitions
+      At line 69 in file RK_Config_Moteur.s
+   Uses
+      At line 464 in file RK_Config_Moteur.s
+      At line 469 in file RK_Config_Moteur.s
 
 PORTD_BASE 40007000
 
@@ -1181,30 +1465,30 @@ Symbol: PORTH_BASE
       At line 38 in file RK_Config_Moteur.s
       At line 39 in file RK_Config_Moteur.s
 
+
+
+ARM Macro Assembler    Page 5 Alphabetic symbol ordering
+Absolute symbols
+
+
 PWM0CMPA 40028058
 
 Symbol: PWM0CMPA
    Definitions
       At line 48 in file RK_Config_Moteur.s
    Uses
-      At line 176 in file RK_Config_Moteur.s
-      At line 404 in file RK_Config_Moteur.s
-      At line 414 in file RK_Config_Moteur.s
-      At line 429 in file RK_Config_Moteur.s
+      At line 199 in file RK_Config_Moteur.s
+      At line 507 in file RK_Config_Moteur.s
+      At line 519 in file RK_Config_Moteur.s
+      At line 537 in file RK_Config_Moteur.s
 
 PWM0CMPB 4002805C
 
 Symbol: PWM0CMPB
-
-
-
-ARM Macro Assembler    Page 5 Alphabetic symbol ordering
-Absolute symbols
-
    Definitions
       At line 49 in file RK_Config_Moteur.s
    Uses
-      At line 180 in file RK_Config_Moteur.s
+      At line 203 in file RK_Config_Moteur.s
 Comment: PWM0CMPB used once
 PWM0CTL 40028040
 
@@ -1212,8 +1496,8 @@ Symbol: PWM0CTL
    Definitions
       At line 46 in file RK_Config_Moteur.s
    Uses
-      At line 156 in file RK_Config_Moteur.s
-      At line 185 in file RK_Config_Moteur.s
+      At line 179 in file RK_Config_Moteur.s
+      At line 208 in file RK_Config_Moteur.s
 
 PWM0GENA 40028060
 
@@ -1221,7 +1505,7 @@ Symbol: PWM0GENA
    Definitions
       At line 50 in file RK_Config_Moteur.s
    Uses
-      At line 160 in file RK_Config_Moteur.s
+      At line 183 in file RK_Config_Moteur.s
 Comment: PWM0GENA used once
 PWM0GENB 40028064
 
@@ -1229,7 +1513,7 @@ Symbol: PWM0GENB
    Definitions
       At line 51 in file RK_Config_Moteur.s
    Uses
-      At line 165 in file RK_Config_Moteur.s
+      At line 188 in file RK_Config_Moteur.s
 Comment: PWM0GENB used once
 PWM0LOAD 40028050
 
@@ -1237,7 +1521,7 @@ Symbol: PWM0LOAD
    Definitions
       At line 47 in file RK_Config_Moteur.s
    Uses
-      At line 172 in file RK_Config_Moteur.s
+      At line 195 in file RK_Config_Moteur.s
 Comment: PWM0LOAD used once
 PWM1CMPA 40028098
 
@@ -1245,10 +1529,16 @@ Symbol: PWM1CMPA
    Definitions
       At line 56 in file RK_Config_Moteur.s
    Uses
-      At line 215 in file RK_Config_Moteur.s
-      At line 399 in file RK_Config_Moteur.s
-      At line 419 in file RK_Config_Moteur.s
-      At line 434 in file RK_Config_Moteur.s
+
+
+
+ARM Macro Assembler    Page 6 Alphabetic symbol ordering
+Absolute symbols
+
+      At line 238 in file RK_Config_Moteur.s
+      At line 500 in file RK_Config_Moteur.s
+      At line 526 in file RK_Config_Moteur.s
+      At line 544 in file RK_Config_Moteur.s
 
 PWM1CMPB 4002809C
 
@@ -1256,22 +1546,16 @@ Symbol: PWM1CMPB
    Definitions
       At line 57 in file RK_Config_Moteur.s
    Uses
-      At line 219 in file RK_Config_Moteur.s
+      At line 242 in file RK_Config_Moteur.s
 Comment: PWM1CMPB used once
 PWM1CTL 40028080
-
-
-
-
-ARM Macro Assembler    Page 6 Alphabetic symbol ordering
-Absolute symbols
 
 Symbol: PWM1CTL
    Definitions
       At line 54 in file RK_Config_Moteur.s
    Uses
-      At line 193 in file RK_Config_Moteur.s
-      At line 224 in file RK_Config_Moteur.s
+      At line 216 in file RK_Config_Moteur.s
+      At line 247 in file RK_Config_Moteur.s
 
 PWM1GENA 400280A0
 
@@ -1279,7 +1563,7 @@ Symbol: PWM1GENA
    Definitions
       At line 58 in file RK_Config_Moteur.s
    Uses
-      At line 197 in file RK_Config_Moteur.s
+      At line 220 in file RK_Config_Moteur.s
 Comment: PWM1GENA used once
 PWM1GENB 400280A4
 
@@ -1287,7 +1571,7 @@ Symbol: PWM1GENB
    Definitions
       At line 59 in file RK_Config_Moteur.s
    Uses
-      At line 203 in file RK_Config_Moteur.s
+      At line 226 in file RK_Config_Moteur.s
 Comment: PWM1GENB used once
 PWM1LOAD 40028090
 
@@ -1295,7 +1579,7 @@ Symbol: PWM1LOAD
    Definitions
       At line 55 in file RK_Config_Moteur.s
    Uses
-      At line 211 in file RK_Config_Moteur.s
+      At line 234 in file RK_Config_Moteur.s
 Comment: PWM1LOAD used once
 PWMENABLE 40028008
 
@@ -1303,12 +1587,18 @@ Symbol: PWMENABLE
    Definitions
       At line 43 in file RK_Config_Moteur.s
    Uses
-      At line 276 in file RK_Config_Moteur.s
-      At line 283 in file RK_Config_Moteur.s
-      At line 290 in file RK_Config_Moteur.s
-      At line 297 in file RK_Config_Moteur.s
+      At line 307 in file RK_Config_Moteur.s
+      At line 314 in file RK_Config_Moteur.s
+      At line 321 in file RK_Config_Moteur.s
+      At line 328 in file RK_Config_Moteur.s
 
 PWM_BASE 40028000
+
+
+
+
+ARM Macro Assembler    Page 7 Alphabetic symbol ordering
+Absolute symbols
 
 Symbol: PWM_BASE
    Definitions
@@ -1325,22 +1615,58 @@ Symbol: PWM_BASE
       At line 55 in file RK_Config_Moteur.s
       At line 56 in file RK_Config_Moteur.s
       At line 57 in file RK_Config_Moteur.s
-
-
-
-ARM Macro Assembler    Page 7 Alphabetic symbol ordering
-Absolute symbols
-
       At line 58 in file RK_Config_Moteur.s
       At line 59 in file RK_Config_Moteur.s
+
+SPEED_MODE_FAST 00000002
+
+Symbol: SPEED_MODE_FAST
+   Definitions
+      At line 75 in file RK_Config_Moteur.s
+   Uses
+      At line 90 in file RK_Config_Moteur.s
+      At line 457 in file RK_Config_Moteur.s
+
+SPEED_MODE_FASTEST 00000003
+
+Symbol: SPEED_MODE_FASTEST
+   Definitions
+      At line 76 in file RK_Config_Moteur.s
+   Uses
+      At line 91 in file RK_Config_Moteur.s
+Comment: SPEED_MODE_FASTEST used once
+SPEED_MODE_NORMAL 00000001
+
+Symbol: SPEED_MODE_NORMAL
+   Definitions
+      At line 74 in file RK_Config_Moteur.s
+   Uses
+      At line 89 in file RK_Config_Moteur.s
+      At line 455 in file RK_Config_Moteur.s
+
+SPEED_MODE_SLOW 00000000
+
+Symbol: SPEED_MODE_SLOW
+   Definitions
+      At line 73 in file RK_Config_Moteur.s
+   Uses
+      At line 88 in file RK_Config_Moteur.s
+      At line 294 in file RK_Config_Moteur.s
+      At line 453 in file RK_Config_Moteur.s
 
 SYSCTL_RCGC0 400FE100
 
 Symbol: SYSCTL_RCGC0
    Definitions
       At line 21 in file RK_Config_Moteur.s
+
+
+
+ARM Macro Assembler    Page 8 Alphabetic symbol ordering
+Absolute symbols
+
    Uses
-      At line 105 in file RK_Config_Moteur.s
+      At line 128 in file RK_Config_Moteur.s
 Comment: SYSCTL_RCGC0 used once
 SYSCTL_RCGC2 400FE108
 
@@ -1350,7 +1676,15 @@ Symbol: SYSCTL_RCGC2
    Uses
       None
 Comment: SYSCTL_RCGC2 unused
-38 symbols
+TURBO_SPEED 00000001
+
+Symbol: TURBO_SPEED
+   Definitions
+      At line 66 in file RK_Config_Moteur.s
+   Uses
+      At line 482 in file RK_Config_Moteur.s
+Comment: TURBO_SPEED used once
+45 symbols
 
 
 
@@ -1361,16 +1695,16 @@ ENABLE_STACK_SYSCTL_RCGC2 00000000
 
 Symbol: ENABLE_STACK_SYSCTL_RCGC2
    Definitions
-      At line 100 in file RK_Config_Moteur.s
+      At line 123 in file RK_Config_Moteur.s
    Uses
-      At line 117 in file RK_Config_Moteur.s
-      At line 122 in file RK_Config_Moteur.s
+      At line 140 in file RK_Config_Moteur.s
+      At line 145 in file RK_Config_Moteur.s
 
 LED_ALL_OFF 00000000
 
 Symbol: LED_ALL_OFF
    Definitions
-      At line 94 in file RK_Config_Moteur.s
+      At line 116 in file RK_Config_Moteur.s
    Uses
       None
 Comment: LED_ALL_OFF unused
@@ -1378,7 +1712,7 @@ LED_ALL_ON 00000000
 
 Symbol: LED_ALL_ON
    Definitions
-      At line 93 in file RK_Config_Moteur.s
+      At line 115 in file RK_Config_Moteur.s
    Uses
       None
 Comment: LED_ALL_ON unused
@@ -1386,33 +1720,48 @@ LED_ETHERNET_ALL_INVERT 00000000
 
 Symbol: LED_ETHERNET_ALL_INVERT
    Definitions
-      At line 97 in file RK_Config_Moteur.s
+      At line 119 in file RK_Config_Moteur.s
    Uses
-      At line 377 in file RK_Config_Moteur.s
+      At line 408 in file RK_Config_Moteur.s
 Comment: LED_ETHERNET_ALL_INVERT used once
 LED_ETHERNET_ALL_OFF 00000000
 
 Symbol: LED_ETHERNET_ALL_OFF
    Definitions
-      At line 96 in file RK_Config_Moteur.s
+      At line 118 in file RK_Config_Moteur.s
    Uses
-      At line 371 in file RK_Config_Moteur.s
+      At line 402 in file RK_Config_Moteur.s
 Comment: LED_ETHERNET_ALL_OFF used once
 LED_ETHERNET_ALL_ON 00000000
 
 Symbol: LED_ETHERNET_ALL_ON
    Definitions
-      At line 95 in file RK_Config_Moteur.s
+      At line 117 in file RK_Config_Moteur.s
    Uses
-      At line 360 in file RK_Config_Moteur.s
+      At line 391 in file RK_Config_Moteur.s
 Comment: LED_ETHERNET_ALL_ON used once
 RETURN 00000000
 
 Symbol: RETURN
    Definitions
-      At line 101 in file RK_Config_Moteur.s
+      At line 124 in file RK_Config_Moteur.s
    Uses
       None
 Comment: RETURN unused
-7 symbols
-402 symbols in table
+SET_LED_ACCORDING_TO_SPEED_MODE 00000000
+
+
+
+
+ARM Macro Assembler    Page 2 Alphabetic symbol ordering
+External symbols
+
+Symbol: SET_LED_ACCORDING_TO_SPEED_MODE
+   Definitions
+      At line 120 in file RK_Config_Moteur.s
+   Uses
+      At line 429 in file RK_Config_Moteur.s
+      At line 442 in file RK_Config_Moteur.s
+
+8 symbols
+422 symbols in table

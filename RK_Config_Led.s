@@ -56,15 +56,23 @@ DUREE   			EQU     0x002FFFFF
 		EXPORT LED_1_OFF
 		EXPORT LED_2_OFF
 		EXPORT LED_ALL_OFF
-        EXPORT LED_ETHERNET_ALL_ON
-        EXPORT LED_ETHERNET_ALL_OFF
-        EXPORT LED_ETHERNET_1_OFF
-        EXPORT LED_ETHERNET_1_ON
-        EXPORT LED_ETHERNET_2_OFF
-        EXPORT LED_ETHERNET_2_ON
-        EXPORT LED_ETHERNET_ALL_INVERT
+                EXPORT LED_ETHERNET_ALL_ON
+                EXPORT LED_ETHERNET_ALL_OFF
+                EXPORT LED_ETHERNET_1_OFF
+                EXPORT LED_ETHERNET_1_ON
+                EXPORT LED_ETHERNET_2_OFF
+                EXPORT LED_ETHERNET_2_ON
+                EXPORT LED_ETHERNET_ALL_INVERT
+
+                EXPORT  SET_LED_ACCORDING_TO_SPEED_MODE
 
 		IMPORT	ENABLE_STACK_SYSCTL_RCGC2
+
+                IMPORT	SPEED_MODE_SLOW   
+		IMPORT	SPEED_MODE_NORMAL 
+		IMPORT	SPEED_MODE_FAST   
+		IMPORT	SPEED_MODE_FASTEST					
+		IMPORT	CURRENT_MODE
 
 		; Il faut appeler BLINK après une config
 		; Il faut à chaque fois refaire la config
@@ -99,6 +107,7 @@ LED_CONFIG_ALL
 
 LED_1_ON
         push {lr}                 ; Save link register
+        BL   LED_2_OFF
         ldr r6, = GPIO_PORTF_BASE + (PIN4<<2)
         mov r3, #PIN4            ; Load pin 4 pattern (0x10)
         str r3, [r6]             ; Turn on LED 1
@@ -108,6 +117,7 @@ LED_1_ON
 ; Function to turn ON LED 2 (Pin 5)
 LED_2_ON
         push {lr}                 ; Save link register
+        BL   LED_1_OFF
         ldr r6, = GPIO_PORTF_BASE  + (PIN5<<2)
         mov r3, #PIN5            ; Load pin 5 pattern (0x20)
         str r3, [r6]             ; Turn on LED 2
@@ -219,5 +229,39 @@ LED_ETHERNET_ALL_OFF
         pop {lr}                 ; Restore link register
         bx lr
 
+
+SET_LED_ACCORDING_TO_SPEED_MODE
+        push    {lr}
+        ldr     r1, =CURRENT_MODE
+        ldr     r1, [r1]           ; Load current mode
+
+
+        ldr     r2, =SPEED_MODE_SLOW
+        cmp     r1, r2
+        push    {r1}
+        BLEQ    LED_ALL_OFF
+        pop     {r1}
+
+        ldr     r2, =SPEED_MODE_NORMAL
+        cmp     r1, r2
+        push    {r1}
+        BLEQ    LED_2_ON
+        pop     {r1}
+
+        ldr     r2, =SPEED_MODE_FAST
+        cmp     r1, r2
+        push    {r1}
+        BLEQ    LED_1_ON
+        pop     {r1}
+
+        ldr     r2, =SPEED_MODE_FASTEST
+        cmp     r1, r2
+        push    {r1}
+        BLEQ    LED_ALL_ON
+        pop     {r1}
+
+
+        pop     {lr}
+        BX      lr
 
         END
