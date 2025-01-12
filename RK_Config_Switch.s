@@ -7,8 +7,8 @@
 
 
 		IMPORT	ENABLE_STACK_SYSCTL_RCGC2
-		IMPORT	rotright
-		IMPORT	rotleft
+		IMPORT	ROT_RIGHT
+		IMPORT	ROT_LEFT
 
 
 GPIO_PORTD_BASE		EQU		0x40007000 ;pour les SW (PORT D)
@@ -50,9 +50,9 @@ HANDLE_SWITCH_PRESS
 		ldr r7,= GPIO_PORTD_BASE + (PORT67<<2)
         ldr r4, [r7]
         cmp r4, #PORT7                                
-        beq rotright
+        beq ROT_RIGHT
         cmp r4, #PORT6                
-        beq rotleft
+        beq ROT_LEFT
 		bx	lr
 
 

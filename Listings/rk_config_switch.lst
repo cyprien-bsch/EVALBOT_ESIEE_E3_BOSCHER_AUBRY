@@ -13,8 +13,8 @@ ARM Macro Assembler    Page 1
     7 00000000         
     8 00000000         
     9 00000000                 IMPORT           ENABLE_STACK_SYSCTL_RCGC2
-   10 00000000                 IMPORT           rotright
-   11 00000000                 IMPORT           rotleft
+   10 00000000                 IMPORT           ROT_RIGHT
+   11 00000000                 IMPORT           ROT_LEFT
    12 00000000         
    13 00000000         
    14 00000000 40007000 
@@ -85,9 +85,9 @@ R
 <2)
    51 00000024 683C            ldr              r4, [r7]
    52 00000026 2C80            cmp              r4, #PORT7
-   53 00000028 F43F AFFE       beq              rotright
+   53 00000028 F43F AFFE       beq              ROT_RIGHT
    54 0000002C 2C40            cmp              r4, #PORT6
-   55 0000002E F43F AFFE       beq              rotleft
+   55 0000002E F43F AFFE       beq              ROT_LEFT
    56 00000032 4770            bx               lr
    57 00000034         
    58 00000034         
@@ -206,21 +206,21 @@ Symbol: ENABLE_STACK_SYSCTL_RCGC2
    Uses
       At line 36 in file RK_Config_Switch.s
 Comment: ENABLE_STACK_SYSCTL_RCGC2 used once
-rotleft 00000000
+ROT_LEFT 00000000
 
-Symbol: rotleft
+Symbol: ROT_LEFT
    Definitions
       At line 11 in file RK_Config_Switch.s
    Uses
       At line 55 in file RK_Config_Switch.s
-Comment: rotleft used once
-rotright 00000000
+Comment: ROT_LEFT used once
+ROT_RIGHT 00000000
 
-Symbol: rotright
+Symbol: ROT_RIGHT
    Definitions
       At line 10 in file RK_Config_Switch.s
    Uses
       At line 53 in file RK_Config_Switch.s
-Comment: rotright used once
+Comment: ROT_RIGHT used once
 3 symbols
 348 symbols in table

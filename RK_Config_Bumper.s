@@ -4,20 +4,7 @@
 ; The GPIODATA register is the data register
 ; GPIO Port F (APB) base: 0x4002.5000 (p416 datasheet de ;lm3s9B92.pdf
 
-GPIO_PORTE_BASE		EQU		0x40024000
-
-
-; configure the corresponding pin to be an output
-; all GPIO pins are inputs by default
-; GPIO Direction (p417 datasheet de lm3s9B92.pdf
-
-GPIO_O_DIR   		EQU 	0x400
-
-; The GPIODR2R register is the 2-mA drive control register
-; By default, all GPIO pins have 2-mA drive.
-; GPIO 2-mA Drive Select (p428 datasheet de lm3s9B92.pdf)
-
-GPIO_O_DR2R   		EQU 	0x500  
+GPIO_PORTE_BASE		EQU		0x40024000 
 
 ; Digital enable register
 ; To use the pin as a digital input or output, the ;corresponding GPIODEN bit must be set.
@@ -39,7 +26,7 @@ PORT0				EQU		0x01
 
 ; PORT E : selection du BUMPER DROIT, LIGNE 1 du Port E
 
-PORT1               EQU     0x02
+PORT1                           EQU     0x02
 
 
 DELAY               EQU     0x000FFFFF
@@ -61,8 +48,8 @@ LAST_BUMPER2_STATE  SPACE   4
         IMPORT	CALL_MOTEUR_RECULER_SHORT
 		IMPORT	MOTEUR_RECULER_SHORT
 		IMPORT	LOOP_SHORT
-        IMPORT	rotleft
-		IMPORT	rotright
+        IMPORT	ROT_LEFT
+		IMPORT	ROT_RIGHT
 		IMPORT	ENABLE_STACK_SYSCTL_RCGC2
 		IMPORT	INCREASE_SPEED_MODE
 		IMPORT	REDUCE_SPEED_MODE
@@ -95,7 +82,7 @@ BUMPER_CHECK_DROIT
         cmp r5,#0x01
 		BEQ	RETURN
         bl CALL_MOTEUR_RECULER_SHORT
-        B   rotleft
+        B   ROT_LEFT
 
 BUMPER_CHECK_GAUCHE
         ldr r9, = GPIO_PORTE_BASE + (PORT1<<2)
@@ -103,7 +90,7 @@ BUMPER_CHECK_GAUCHE
         cmp r10, #0x02
 		BEQ	RETURN
        	bl CALL_MOTEUR_RECULER_SHORT
-        B   rotright
+        B   ROT_RIGHT
 
 
 HANDLE_BUMPER_SET_SPEED

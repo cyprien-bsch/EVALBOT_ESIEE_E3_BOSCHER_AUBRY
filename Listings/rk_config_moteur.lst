@@ -162,10 +162,10 @@ ARM Macro Assembler    Page 3
    60 00000000         
    61 00000000         
    62 00000000 003FFFFF 
-                       DUREE_SHORT
+                       DELAY_SHORT
                                EQU              0x003FFFFF
    63 00000000 000FFFFF 
-                       DUREE_ULTRA_SHORT
+                       DELAY_ULTRA_SHORT
                                EQU              0x000FFFFF
    64 00000000         
    65 00000000         
@@ -656,8 +656,8 @@ ARM Macro Assembler    Page 11
 
   391 0000019E F7FF FFFE       BL               LED_ETHERNET_ALL_ON
   392 000001A2         
-  393 000001A2 4969            ldr              r1, =DUREE_SHORT
-  394 000001A4 4A69            ldr              r2, =DUREE_ULTRA_SHORT
+  393 000001A2 4969            ldr              r1, =DELAY_SHORT
+  394 000001A4 4A69            ldr              r2, =DELAY_ULTRA_SHORT
   395 000001A6 E7FE            b                LOOP_SHORT
   396 000001A8         
   397 000001A8         
@@ -674,7 +674,7 @@ ARM Macro Assembler    Page 11
   408 000001BC F7FF FFFE       BL               LED_ETHERNET_ALL_INVERT
   409 000001C0 E8BD 4006       pop              {r1, r2, lr}
   410 000001C4         
-  411 000001C4 4A61            ldr              r2, =DUREE_ULTRA_SHORT
+  411 000001C4 4A61            ldr              r2, =DELAY_ULTRA_SHORT
   412 000001C6 1A89            subs             r1, r2
   413 000001C8 2900            cmp              r1, #0
   414 000001CA DD00            BLE              DONE
@@ -687,13 +687,11 @@ ARM Macro Assembler    Page 11
   421 000001D0         INCREASE_SPEED_MODE
   422 000001D0 B503            push             {r0-r1, lr}
   423 000001D2 485A            ldr              r0, =CURRENT_MODE
-  424 000001D4 6801            ldr              r1, [r0]    ; Load current mode
-                                                            
-  425 000001D6 2903            cmp              r1, #3      ; Check if already 
-                                                            at max
+  424 000001D4 6801            ldr              r1, [r0]
+  425 000001D6 2903            cmp              r1, #3
   426 000001D8 D004            beq              DONE_INCREASE
-  427 000001DA F101 0101       add              r1, #1      ; Increase mode
-  428 000001DE 6001            str              r1, [r0]    ; Store new mode
+  427 000001DA F101 0101       add              r1, #1
+  428 000001DE 6001            str              r1, [r0]
   429 000001E0 F7FF FFFE       BL               SET_LED_ACCORDING_TO_SPEED_MODE
   430 000001E4         DONE_INCREASE
   431 000001E4 E8BD 4003       pop              {r0-r1, lr}
@@ -701,140 +699,159 @@ ARM Macro Assembler    Page 11
   433 000001EA         
   434 000001EA         REDUCE_SPEED_MODE
   435 000001EA B503            push             {r0-r1, lr}
-  436 000001EC 4853            ldr              r0, =CURRENT_MODE
-  437 000001EE 6801            ldr              r1, [r0]    ; Load current mode
-                                                            
-  438 000001F0 2900            cmp              r1, #0      ; Check if already 
-                                                            at min
-  439 000001F2 D004            beq              DONE_REDUCE
-  440 000001F4 F1A1 0101       sub              r1, #1      ; Reduce mode
-  441 000001F8 6001            str              r1, [r0]    ; Store new mode
-  442 000001FA F7FF FFFE       BL               SET_LED_ACCORDING_TO_SPEED_MODE
-  443 000001FE         DONE_REDUCE
-  444 000001FE E8BD 4003       pop              {r0-r1, lr}
-  445 00000202 4770            bx               lr
+  436 000001EC         ; Load current mode
+  437 000001EC 4853            ldr              r0, =CURRENT_MODE
+  438 000001EE         
+  439 000001EE 6801            ldr              r1, [r0]
+  440 000001F0         ; Check if already at min     
+  441 000001F0 2900            cmp              r1, #0
+  442 000001F2 D004            beq              DONE_REDUCE
+  443 000001F4         ; Reduce mode
+  444 000001F4 F1A1 0101       sub              r1, #1
+  445 000001F8         ; Store new mode
+  446 000001F8 6001            str              r1, [r0]
+  447 000001FA F7FF FFFE       BL               SET_LED_ACCORDING_TO_SPEED_MODE
+  448 000001FE         DONE_REDUCE
+  449 000001FE E8BD 4003       pop              {r0-r1, lr}
 
 
 
 ARM Macro Assembler    Page 12 
 
 
-  446 00000204         
-  447 00000204         GET_SPEED_FOR_MODE
-  448 00000204 B506            push             {r1-r2, lr}
-  449 00000206 494D            ldr              r1, =CURRENT_MODE
-  450 00000208 6809            ldr              r1, [r1]    ; Load current mode
-                                                            
-  451 0000020A         
-  452 0000020A         ; r0 contains speed type (0 for lower speed, 1 for highe
+  450 00000202 4770            bx               lr
+  451 00000204         
+  452 00000204         GET_SPEED_FOR_MODE
+  453 00000204 B506            push             {r1-r2, lr}
+  454 00000206         ; Load current mode
+  455 00000206 494D            ldr              r1, =CURRENT_MODE
+  456 00000208 6809            ldr              r1, [r1]
+  457 0000020A         
+  458 0000020A         ; r0 contains speed type (0 for lower speed, 1 for highe
                        r speed)
-  453 0000020A 2900            cmp              r1, #SPEED_MODE_SLOW
-  454 0000020C D004            beq              SLOW_MODE
-  455 0000020E 2901            cmp              r1, #SPEED_MODE_NORMAL
-  456 00000210 D009            beq              NORMAL_MODE
-  457 00000212 2902            cmp              r1, #SPEED_MODE_FAST
-  458 00000214 D00D            beq              FAST_MODE
-  459 00000216 E011            b                FASTEST_MODE ; Default to faste
-                                                            st if unknown mode
-  460 00000218         
-  461 00000218         SLOW_MODE
-  462 00000218 2800            cmp              r0, #0
-  463 0000021A BF0C F44F 
+  459 0000020A 2900            cmp              r1, #SPEED_MODE_SLOW
+  460 0000020C D004            beq              SLOW_MODE
+  461 0000020E 2901            cmp              r1, #SPEED_MODE_NORMAL
+  462 00000210 D009            beq              NORMAL_MODE
+  463 00000212 2902            cmp              r1, #SPEED_MODE_FAST
+  464 00000214 D00D            beq              FAST_MODE
+  465 00000216 E011            b                FASTEST_MODE
+  466 00000218         
+  467 00000218         SLOW_MODE
+  468 00000218 2800            cmp              r0, #0
+  469 0000021A BF0C F44F 
               70D8             moveq            r0, #LOW_SPEED
-  464 00000220 F44F 70A1       movne            r0, #MODERATE_SPEED
-  465 00000224 E00E            b                DONE_GET_SPEED
-  466 00000226         
-  467 00000226         NORMAL_MODE
-  468 00000226 2800            cmp              r0, #0
-  469 00000228 BF0C F44F 
+  470 00000220 F44F 70A1       movne            r0, #MODERATE_SPEED
+  471 00000224 E00E            b                DONE_GET_SPEED
+  472 00000226         
+  473 00000226         NORMAL_MODE
+  474 00000226 2800            cmp              r0, #0
+  475 00000228 BF0C F44F 
               70A1             moveq            r0, #MODERATE_SPEED
-  470 0000022E 20D7            movne            r0, #MEDIUM_SPEED
-  471 00000230 E008            b                DONE_GET_SPEED
-  472 00000232         
-  473 00000232         FAST_MODE
-  474 00000232 2800            cmp              r0, #0
-  475 00000234 BF0C 20D7       moveq            r0, #MEDIUM_SPEED
-  476 00000238 206C            movne            r0, #HIGH_SPEED
-  477 0000023A E003            b                DONE_GET_SPEED
-  478 0000023C         
-  479 0000023C         FASTEST_MODE
-  480 0000023C 2800            cmp              r0, #0
-  481 0000023E BF0C 206C       moveq            r0, #HIGH_SPEED
-  482 00000242 2001            movne            r0, #TURBO_SPEED
-  483 00000244         
-  484 00000244         DONE_GET_SPEED
-  485 00000244 E8BD 4006       pop              {r1-r2, lr}
-  486 00000248 4770            bx               lr
-  487 0000024A         
-  488 0000024A         
-  489 0000024A         SET_SPEED
-  490 0000024A BC40            pop              {r6}        ; Speed Adress 
-  491 0000024C BC01            pop              {r0}        ; Speed value
-  492 0000024E 6030            str              r0, [r6]
-  493 00000250 4770            bx               lr
-  494 00000252         
-  495 00000252         TRAJECTORY_LEFT
-  496 00000252 B503            push             {r0-r1, lr}
-  497 00000254 F04F 0000       mov              r0, #0      ; Get lower speed
-  498 00000258 F7FF FFD4       bl               GET_SPEED_FOR_MODE
-  499 0000025C B401            push             {r0}
+  476 0000022E 20D7            movne            r0, #MEDIUM_SPEED
+  477 00000230 E008            b                DONE_GET_SPEED
+  478 00000232         
+  479 00000232         FAST_MODE
+  480 00000232 2800            cmp              r0, #0
+  481 00000234 BF0C 20D7       moveq            r0, #MEDIUM_SPEED
+  482 00000238 206C            movne            r0, #HIGH_SPEED
+  483 0000023A E003            b                DONE_GET_SPEED
+  484 0000023C         
+  485 0000023C         FASTEST_MODE
+  486 0000023C 2800            cmp              r0, #0
+  487 0000023E BF0C 206C       moveq            r0, #HIGH_SPEED
+  488 00000242 2001            movne            r0, #TURBO_SPEED
+  489 00000244         
+  490 00000244         DONE_GET_SPEED
+  491 00000244 E8BD 4006       pop              {r1-r2, lr}
+  492 00000248 4770            bx               lr
+  493 0000024A         
+  494 0000024A         
+  495 0000024A         SET_SPEED
+  496 0000024A BC40            pop              {r6}        ; Speed Adress 
+  497 0000024C BC01            pop              {r0}        ; Speed value
+  498 0000024E 6030            str              r0, [r6]
+  499 00000250 4770            bx               lr
+  500 00000252         
+  501 00000252         TRAJECTORY_LEFT
+  502 00000252 B503            push             {r0-r1, lr}
+  503 00000254         
+  504 00000254         ; Get lower speed
+  505 00000254 F04F 0000       mov              r0, #0
 
 
 
 ARM Macro Assembler    Page 13 
 
 
-  500 0000025E 482D            ldr              r0, =PWM1CMPA
-  501 00000260 B401            push             {r0}
-  502 00000262 F7FF FFF2       bl               SET_SPEED
-  503 00000266         
-  504 00000266 F04F 0001       mov              r0, #1      ; Get higher speed
-  505 0000026A F7FF FFCB       bl               GET_SPEED_FOR_MODE
-  506 0000026E B401            push             {r0}
-  507 00000270 4822            ldr              r0, =PWM0CMPA
-  508 00000272 B401            push             {r0}
-  509 00000274 F7FF FFE9       bl               SET_SPEED
-  510 00000278 E8BD 4003       pop              {r0-r1, lr}
-  511 0000027C 4770            bx               lr
-  512 0000027E         
-  513 0000027E         
-  514 0000027E         TRAJECTORY_RIGHT
-  515 0000027E B503            push             {r0-r1, lr}
-  516 00000280 F04F 0000       mov              r0, #0      ; Get lower speed
-  517 00000284 F7FF FFBE       bl               GET_SPEED_FOR_MODE
-  518 00000288 B401            push             {r0}
-  519 0000028A 481C            ldr              r0, =PWM0CMPA
-  520 0000028C B401            push             {r0}
-  521 0000028E F7FF FFDC       bl               SET_SPEED
-  522 00000292         
-  523 00000292 F04F 0001       mov              r0, #1      ; Get higher speed
-  524 00000296 F7FF FFB5       bl               GET_SPEED_FOR_MODE
-  525 0000029A B401            push             {r0}
-  526 0000029C 481D            ldr              r0, =PWM1CMPA
-  527 0000029E B401            push             {r0}
-  528 000002A0 F7FF FFD3       bl               SET_SPEED
-  529 000002A4 E8BD 4003       pop              {r0-r1, lr}
-  530 000002A8 4770            bx               lr
-  531 000002AA         
-  532 000002AA         TRAJECTORY_STRAIGHT
-  533 000002AA B503            push             {r0-r1, lr}
-  534 000002AC F04F 0001       mov              r0, #1
-  535 000002B0 F7FF FFA8       bl               GET_SPEED_FOR_MODE
-  536 000002B4 B401            push             {r0}
-  537 000002B6 4811            ldr              r0, =PWM0CMPA
-  538 000002B8 B401            push             {r0}
-  539 000002BA F7FF FFC6       bl               SET_SPEED
-  540 000002BE         
-  541 000002BE F04F 0001       mov              r0, #1      ; Get higher speed
-  542 000002C2 F7FF FF9F       bl               GET_SPEED_FOR_MODE
-  543 000002C6 B401            push             {r0}
-  544 000002C8 4812            ldr              r0, =PWM1CMPA
-  545 000002CA B401            push             {r0}
-  546 000002CC F7FF FFBD       bl               SET_SPEED
-  547 000002D0 E8BD 4003       pop              {r0-r1, lr}
-  548 000002D4 4770            bx               lr
-  549 000002D6         
-  550 000002D6                 END
+  506 00000258 F7FF FFD4       bl               GET_SPEED_FOR_MODE
+  507 0000025C B401            push             {r0}
+  508 0000025E 482D            ldr              r0, =PWM1CMPA
+  509 00000260 B401            push             {r0}
+  510 00000262 F7FF FFF2       bl               SET_SPEED
+  511 00000266         
+  512 00000266         ; Get higher speed
+  513 00000266 F04F 0001       mov              r0, #1
+  514 0000026A F7FF FFCB       bl               GET_SPEED_FOR_MODE
+  515 0000026E B401            push             {r0}
+  516 00000270 4822            ldr              r0, =PWM0CMPA
+  517 00000272 B401            push             {r0}
+  518 00000274 F7FF FFE9       bl               SET_SPEED
+  519 00000278         
+  520 00000278 E8BD 4003       pop              {r0-r1, lr}
+  521 0000027C 4770            bx               lr
+  522 0000027E         
+  523 0000027E         
+  524 0000027E         TRAJECTORY_RIGHT
+  525 0000027E B503            push             {r0-r1, lr}
+  526 00000280         ; Get lower speed
+  527 00000280 F04F 0000       mov              r0, #0
+  528 00000284 F7FF FFBE       bl               GET_SPEED_FOR_MODE
+  529 00000288 B401            push             {r0}
+  530 0000028A 481C            ldr              r0, =PWM0CMPA
+  531 0000028C B401            push             {r0}
+  532 0000028E F7FF FFDC       bl               SET_SPEED
+  533 00000292         
+  534 00000292         
+  535 00000292         ; Get higher speed
+  536 00000292 F04F 0001       mov              r0, #1
+  537 00000296 F7FF FFB5       bl               GET_SPEED_FOR_MODE
+  538 0000029A B401            push             {r0}
+  539 0000029C 481D            ldr              r0, =PWM1CMPA
+  540 0000029E B401            push             {r0}
+  541 000002A0 F7FF FFD3       bl               SET_SPEED
+  542 000002A4         
+  543 000002A4         
+  544 000002A4 E8BD 4003       pop              {r0-r1, lr}
+  545 000002A8 4770            bx               lr
+  546 000002AA         
+  547 000002AA         TRAJECTORY_STRAIGHT
+  548 000002AA B503            push             {r0-r1, lr}
+  549 000002AC         ; Get higher speed
+  550 000002AC F04F 0001       mov              r0, #1
+  551 000002B0 F7FF FFA8       bl               GET_SPEED_FOR_MODE
+  552 000002B4 B401            push             {r0}
+  553 000002B6 4811            ldr              r0, =PWM0CMPA
+  554 000002B8 B401            push             {r0}
+  555 000002BA F7FF FFC6       bl               SET_SPEED
+  556 000002BE         
+  557 000002BE         ; Get higher speed
+  558 000002BE F04F 0001       mov              r0, #1
+  559 000002C2 F7FF FF9F       bl               GET_SPEED_FOR_MODE
+  560 000002C6 B401            push             {r0}
+  561 000002C8 4812            ldr              r0, =PWM1CMPA
+  562 000002CA B401            push             {r0}
+  563 000002CC F7FF FFBD       bl               SET_SPEED
+  564 000002D0 E8BD 4003       pop              {r0-r1, lr}
+
+
+
+ARM Macro Assembler    Page 14 
+
+
+  565 000002D4 4770            bx               lr
+  566 000002D6         
+  567 000002D6                 END
               00 00 400FE100 
               4000752C 
               4002752C 
@@ -843,12 +860,6 @@ ARM Macro Assembler    Page 13
               40028040 
               40028060 
               40028064 
-
-
-
-ARM Macro Assembler    Page 14 
-
-
               40028050 
               40028058 
               4002805C 
@@ -893,8 +904,8 @@ Symbol: CURRENT_MODE
       At line 92 in file RK_Config_Moteur.s
       At line 293 in file RK_Config_Moteur.s
       At line 423 in file RK_Config_Moteur.s
-      At line 436 in file RK_Config_Moteur.s
-      At line 449 in file RK_Config_Moteur.s
+      At line 437 in file RK_Config_Moteur.s
+      At line 455 in file RK_Config_Moteur.s
 
 MyData 00000000
 
@@ -939,11 +950,11 @@ DONE_GET_SPEED 00000244
 
 Symbol: DONE_GET_SPEED
    Definitions
-      At line 484 in file RK_Config_Moteur.s
+      At line 490 in file RK_Config_Moteur.s
    Uses
-      At line 465 in file RK_Config_Moteur.s
       At line 471 in file RK_Config_Moteur.s
       At line 477 in file RK_Config_Moteur.s
+      At line 483 in file RK_Config_Moteur.s
 
 DONE_INCREASE 000001E4
 
@@ -957,17 +968,17 @@ DONE_REDUCE 000001FE
 
 Symbol: DONE_REDUCE
    Definitions
-      At line 443 in file RK_Config_Moteur.s
+      At line 448 in file RK_Config_Moteur.s
    Uses
-      At line 439 in file RK_Config_Moteur.s
+      At line 442 in file RK_Config_Moteur.s
 Comment: DONE_REDUCE used once
 FASTEST_MODE 0000023C
 
 Symbol: FASTEST_MODE
    Definitions
-      At line 479 in file RK_Config_Moteur.s
+      At line 485 in file RK_Config_Moteur.s
    Uses
-      At line 459 in file RK_Config_Moteur.s
+      At line 465 in file RK_Config_Moteur.s
 Comment: FASTEST_MODE used once
 FAST_MODE 00000232
 
@@ -979,22 +990,22 @@ Relocatable symbols
 
 Symbol: FAST_MODE
    Definitions
-      At line 473 in file RK_Config_Moteur.s
+      At line 479 in file RK_Config_Moteur.s
    Uses
-      At line 458 in file RK_Config_Moteur.s
+      At line 464 in file RK_Config_Moteur.s
 Comment: FAST_MODE used once
 GET_SPEED_FOR_MODE 00000204
 
 Symbol: GET_SPEED_FOR_MODE
    Definitions
-      At line 447 in file RK_Config_Moteur.s
+      At line 452 in file RK_Config_Moteur.s
    Uses
-      At line 498 in file RK_Config_Moteur.s
-      At line 505 in file RK_Config_Moteur.s
-      At line 517 in file RK_Config_Moteur.s
-      At line 524 in file RK_Config_Moteur.s
-      At line 535 in file RK_Config_Moteur.s
-      At line 542 in file RK_Config_Moteur.s
+      At line 506 in file RK_Config_Moteur.s
+      At line 514 in file RK_Config_Moteur.s
+      At line 528 in file RK_Config_Moteur.s
+      At line 537 in file RK_Config_Moteur.s
+      At line 551 in file RK_Config_Moteur.s
+      At line 559 in file RK_Config_Moteur.s
 
 INCREASE_SPEED_MODE 000001D0
 
@@ -1132,9 +1143,9 @@ NORMAL_MODE 00000226
 
 Symbol: NORMAL_MODE
    Definitions
-      At line 467 in file RK_Config_Moteur.s
+      At line 473 in file RK_Config_Moteur.s
    Uses
-      At line 456 in file RK_Config_Moteur.s
+      At line 462 in file RK_Config_Moteur.s
 Comment: NORMAL_MODE used once
 REDUCE_SPEED_MODE 000001EA
 
@@ -1156,14 +1167,14 @@ SET_SPEED 0000024A
 
 Symbol: SET_SPEED
    Definitions
-      At line 489 in file RK_Config_Moteur.s
+      At line 495 in file RK_Config_Moteur.s
    Uses
-      At line 502 in file RK_Config_Moteur.s
-      At line 509 in file RK_Config_Moteur.s
-      At line 521 in file RK_Config_Moteur.s
-      At line 528 in file RK_Config_Moteur.s
-      At line 539 in file RK_Config_Moteur.s
-      At line 546 in file RK_Config_Moteur.s
+      At line 510 in file RK_Config_Moteur.s
+      At line 518 in file RK_Config_Moteur.s
+      At line 532 in file RK_Config_Moteur.s
+      At line 541 in file RK_Config_Moteur.s
+      At line 555 in file RK_Config_Moteur.s
+      At line 563 in file RK_Config_Moteur.s
 
 
 
@@ -1175,15 +1186,15 @@ SLOW_MODE 00000218
 
 Symbol: SLOW_MODE
    Definitions
-      At line 461 in file RK_Config_Moteur.s
+      At line 467 in file RK_Config_Moteur.s
    Uses
-      At line 454 in file RK_Config_Moteur.s
+      At line 460 in file RK_Config_Moteur.s
 Comment: SLOW_MODE used once
 TRAJECTORY_LEFT 00000252
 
 Symbol: TRAJECTORY_LEFT
    Definitions
-      At line 495 in file RK_Config_Moteur.s
+      At line 501 in file RK_Config_Moteur.s
    Uses
       At line 109 in file RK_Config_Moteur.s
 Comment: TRAJECTORY_LEFT used once
@@ -1191,7 +1202,7 @@ TRAJECTORY_RIGHT 0000027E
 
 Symbol: TRAJECTORY_RIGHT
    Definitions
-      At line 514 in file RK_Config_Moteur.s
+      At line 524 in file RK_Config_Moteur.s
    Uses
       At line 110 in file RK_Config_Moteur.s
 Comment: TRAJECTORY_RIGHT used once
@@ -1199,7 +1210,7 @@ TRAJECTORY_STRAIGHT 000002AA
 
 Symbol: TRAJECTORY_STRAIGHT
    Definitions
-      At line 532 in file RK_Config_Moteur.s
+      At line 547 in file RK_Config_Moteur.s
    Uses
       At line 388 in file RK_Config_Moteur.s
 Comment: TRAJECTORY_STRAIGHT used once
@@ -1210,17 +1221,17 @@ Comment: TRAJECTORY_STRAIGHT used once
 ARM Macro Assembler    Page 1 Alphabetic symbol ordering
 Absolute symbols
 
-DUREE_SHORT 003FFFFF
+DELAY_SHORT 003FFFFF
 
-Symbol: DUREE_SHORT
+Symbol: DELAY_SHORT
    Definitions
       At line 62 in file RK_Config_Moteur.s
    Uses
       At line 393 in file RK_Config_Moteur.s
-Comment: DUREE_SHORT used once
-DUREE_ULTRA_SHORT 000FFFFF
+Comment: DELAY_SHORT used once
+DELAY_ULTRA_SHORT 000FFFFF
 
-Symbol: DUREE_ULTRA_SHORT
+Symbol: DELAY_ULTRA_SHORT
    Definitions
       At line 63 in file RK_Config_Moteur.s
    Uses
@@ -1408,8 +1419,8 @@ Absolute symbols
    Definitions
       At line 67 in file RK_Config_Moteur.s
    Uses
-      At line 476 in file RK_Config_Moteur.s
-      At line 481 in file RK_Config_Moteur.s
+      At line 482 in file RK_Config_Moteur.s
+      At line 487 in file RK_Config_Moteur.s
 
 LOW_SPEED 000001B0
 
@@ -1419,7 +1430,7 @@ Symbol: LOW_SPEED
    Uses
       At line 200 in file RK_Config_Moteur.s
       At line 239 in file RK_Config_Moteur.s
-      At line 463 in file RK_Config_Moteur.s
+      At line 469 in file RK_Config_Moteur.s
 
 MEDIUM_SPEED 000000D7
 
@@ -1427,8 +1438,8 @@ Symbol: MEDIUM_SPEED
    Definitions
       At line 68 in file RK_Config_Moteur.s
    Uses
-      At line 470 in file RK_Config_Moteur.s
-      At line 475 in file RK_Config_Moteur.s
+      At line 476 in file RK_Config_Moteur.s
+      At line 481 in file RK_Config_Moteur.s
 
 MODERATE_SPEED 00000142
 
@@ -1436,8 +1447,8 @@ Symbol: MODERATE_SPEED
    Definitions
       At line 69 in file RK_Config_Moteur.s
    Uses
-      At line 464 in file RK_Config_Moteur.s
-      At line 469 in file RK_Config_Moteur.s
+      At line 470 in file RK_Config_Moteur.s
+      At line 475 in file RK_Config_Moteur.s
 
 PORTD_BASE 40007000
 
@@ -1478,9 +1489,9 @@ Symbol: PWM0CMPA
       At line 48 in file RK_Config_Moteur.s
    Uses
       At line 199 in file RK_Config_Moteur.s
-      At line 507 in file RK_Config_Moteur.s
-      At line 519 in file RK_Config_Moteur.s
-      At line 537 in file RK_Config_Moteur.s
+      At line 516 in file RK_Config_Moteur.s
+      At line 530 in file RK_Config_Moteur.s
+      At line 553 in file RK_Config_Moteur.s
 
 PWM0CMPB 4002805C
 
@@ -1536,9 +1547,9 @@ ARM Macro Assembler    Page 6 Alphabetic symbol ordering
 Absolute symbols
 
       At line 238 in file RK_Config_Moteur.s
-      At line 500 in file RK_Config_Moteur.s
-      At line 526 in file RK_Config_Moteur.s
-      At line 544 in file RK_Config_Moteur.s
+      At line 508 in file RK_Config_Moteur.s
+      At line 539 in file RK_Config_Moteur.s
+      At line 561 in file RK_Config_Moteur.s
 
 PWM1CMPB 4002809C
 
@@ -1625,7 +1636,7 @@ Symbol: SPEED_MODE_FAST
       At line 75 in file RK_Config_Moteur.s
    Uses
       At line 90 in file RK_Config_Moteur.s
-      At line 457 in file RK_Config_Moteur.s
+      At line 463 in file RK_Config_Moteur.s
 
 SPEED_MODE_FASTEST 00000003
 
@@ -1642,7 +1653,7 @@ Symbol: SPEED_MODE_NORMAL
       At line 74 in file RK_Config_Moteur.s
    Uses
       At line 89 in file RK_Config_Moteur.s
-      At line 455 in file RK_Config_Moteur.s
+      At line 461 in file RK_Config_Moteur.s
 
 SPEED_MODE_SLOW 00000000
 
@@ -1652,7 +1663,7 @@ Symbol: SPEED_MODE_SLOW
    Uses
       At line 88 in file RK_Config_Moteur.s
       At line 294 in file RK_Config_Moteur.s
-      At line 453 in file RK_Config_Moteur.s
+      At line 459 in file RK_Config_Moteur.s
 
 SYSCTL_RCGC0 400FE100
 
@@ -1682,7 +1693,7 @@ Symbol: TURBO_SPEED
    Definitions
       At line 66 in file RK_Config_Moteur.s
    Uses
-      At line 482 in file RK_Config_Moteur.s
+      At line 488 in file RK_Config_Moteur.s
 Comment: TURBO_SPEED used once
 45 symbols
 
@@ -1761,7 +1772,7 @@ Symbol: SET_LED_ACCORDING_TO_SPEED_MODE
       At line 120 in file RK_Config_Moteur.s
    Uses
       At line 429 in file RK_Config_Moteur.s
-      At line 442 in file RK_Config_Moteur.s
+      At line 447 in file RK_Config_Moteur.s
 
 8 symbols
 422 symbols in table

@@ -10,9 +10,6 @@ SYSCTL_RCGC2     EQU		0x400FE108	; SYSCTL_RCGC2_R (p291 datasheet de lm3s9b92.pd
 ; The GPIODATA register is the data register
 GPIO_PORTF_BASE		EQU		0x40025000	; GPIO Port F (APB) base: 0x4002.5000 (p416 datasheet de lm3s9B92.pdf)
 
-; The GPIODATA register is the data register
-GPIO_PORTD_BASE		EQU		0x40007000		; GPIO Port D (APB) base: 0x4000.7000 (p416 datasheet de lm3s9B92.pdf)
-
 ; configure the corresponding pin to be an output
 ; all GPIO pins are inputs by default
 GPIO_O_DIR   		EQU 	0x00000400  ; GPIO Direction (p417 datasheet de lm3s9B92.pdf)
@@ -25,9 +22,6 @@ GPIO_O_DR2R   		EQU 	0x00000500  ; GPIO 2-mA Drive Select (p428 datasheet de lm3
 ; To use the pin as a digital input or output, the corresponding GPIODEN bit must be set.
 GPIO_O_DEN  		EQU 	0x0000051C  ; GPIO Digital Enable (p437 datasheet de lm3s9B92.pdf)
 
-; Pul_up
-GPIO_I_PUR   		EQU 	0x00000510  ; GPIO Pull-Up (p432 datasheet de lm3s9B92.pdf)
-
 ;LED 1
 PIN4				EQU		0x10
 ;LED 2
@@ -39,11 +33,6 @@ BROCHE4_5			EQU		0x30		; led1 & led2 sur broche 4 et 5
 PIN2				EQU		0x04        ; led ethernet 1 
 PIN3				EQU		0x08        ; led ethernet 2 
 BROCHE2_3			EQU		0x0C		; led ethernet 1 & led ethernet 2
-
-BROCHE6				EQU 	0x40		; bouton poussoir 1
-
-; blinking frequency
-DUREE   			EQU     0x002FFFFF
 
 
 		AREA    |.text|, CODE, READONLY
@@ -73,10 +62,6 @@ DUREE   			EQU     0x002FFFFF
 		IMPORT	SPEED_MODE_FAST   
 		IMPORT	SPEED_MODE_FASTEST					
 		IMPORT	CURRENT_MODE
-
-		; Il faut appeler BLINK après une config
-		; Il faut à chaque fois refaire la config
-		; Ex : (LED1_CONFIG + BLINK ||LED_CONFIG_ALL + BLINK)
 
 LED_CONFIG_ALL
         push {lr}

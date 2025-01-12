@@ -3,7 +3,7 @@
 <title>Static Call Graph - [.\Objects\projet.axf]</title></head>
 <body><HR>
 <H1>Static Call Graph for image .\Objects\projet.axf</H1><HR>
-<BR><P>#&#060CALLGRAPH&#062# ARM Linker, 5060750: Last Updated: Sun Jan 12 19:52:40 2025
+<BR><P>#&#060CALLGRAPH&#062# ARM Linker, 5060750: Last Updated: Sun Jan 12 21:00:58 2025
 <BR><P>
 <H3>Maximum Stack Usage =          0 bytes + Unknown(Functions without stacksize, Cycles, Untraceable Function Pointers)</H3><H3>
 Call chain for Maximum Stack Depth:</H3>
@@ -31,8 +31,8 @@ Functions with no stack information
  <LI><a href="#[2c]">TRAJECTORY_LEFT</a>
  <LI><a href="#[2d]">TRAJECTORY_RIGHT</a>
  <LI><a href="#[18]">__main</a>
- <LI><a href="#[2e]">rotright</a>
- <LI><a href="#[2f]">rotleft</a>
+ <LI><a href="#[2e]">ROT_RIGHT</a>
+ <LI><a href="#[2f]">ROT_LEFT</a>
  <LI><a href="#[19]">BUMPER_INIT</a>
  <LI><a href="#[30]">BUMPER_CHECK_DROIT</a>
  <LI><a href="#[31]">BUMPER_CHECK_GAUCHE</a>
@@ -61,8 +61,8 @@ Functions with no stack information
 <P>
 <H3>
 Mutually Recursive functions
-</H3> <LI><a href="#[2f]">rotleft</a>&nbsp;&nbsp;&nbsp;&rArr;&nbsp;&nbsp;&nbsp;<a href="#[41]">HANDLE_SWITCH_PRESS</a><BR>
- <LI><a href="#[30]">BUMPER_CHECK_DROIT</a>&nbsp;&nbsp;&nbsp;&rArr;&nbsp;&nbsp;&nbsp;<a href="#[2f]">rotleft</a><BR>
+</H3> <LI><a href="#[2f]">ROT_LEFT</a>&nbsp;&nbsp;&nbsp;&rArr;&nbsp;&nbsp;&nbsp;<a href="#[41]">HANDLE_SWITCH_PRESS</a><BR>
+ <LI><a href="#[30]">BUMPER_CHECK_DROIT</a>&nbsp;&nbsp;&nbsp;&rArr;&nbsp;&nbsp;&nbsp;<a href="#[2f]">ROT_LEFT</a><BR>
  <LI><a href="#[1]">NMI_Handler</a>&nbsp;&nbsp;&nbsp;&rArr;&nbsp;&nbsp;&nbsp;<a href="#[1]">NMI_Handler</a><BR>
  <LI><a href="#[2]">HardFault_Handler</a>&nbsp;&nbsp;&nbsp;&rArr;&nbsp;&nbsp;&nbsp;<a href="#[2]">HardFault_Handler</a><BR>
  <LI><a href="#[3]">MemManage_Handler</a>&nbsp;&nbsp;&nbsp;&rArr;&nbsp;&nbsp;&nbsp;<a href="#[3]">MemManage_Handler</a><BR>
@@ -122,16 +122,16 @@ Global Symbols
 </UL>
 
 <P><STRONG><a name="[1d]"></a>MOTEUR_DROIT_ON</STRONG> (Thumb, 0 bytes, Stack size unknown bytes, rk_config_moteur.o(.text))
-<BR><BR>[Called By]<UL><LI><a href="#[2f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;rotleft
-<LI><a href="#[2e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;rotright
+<BR><BR>[Called By]<UL><LI><a href="#[2f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;ROT_LEFT
+<LI><a href="#[2e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;ROT_RIGHT
 <LI><a href="#[28]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;MOTEUR_RECULER_SHORT
 </UL>
 
 <P><STRONG><a name="[1e]"></a>MOTEUR_DROIT_OFF</STRONG> (Thumb, 0 bytes, Stack size unknown bytes, rk_config_moteur.o(.text), UNUSED, KEPT)
 
 <P><STRONG><a name="[1f]"></a>MOTEUR_GAUCHE_ON</STRONG> (Thumb, 0 bytes, Stack size unknown bytes, rk_config_moteur.o(.text))
-<BR><BR>[Called By]<UL><LI><a href="#[2f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;rotleft
-<LI><a href="#[2e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;rotright
+<BR><BR>[Called By]<UL><LI><a href="#[2f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;ROT_LEFT
+<LI><a href="#[2e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;ROT_RIGHT
 <LI><a href="#[28]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;MOTEUR_RECULER_SHORT
 </UL>
 
@@ -142,8 +142,8 @@ Global Symbols
 </UL>
 
 <P><STRONG><a name="[22]"></a>MOTEUR_DROIT_AVANT</STRONG> (Thumb, 0 bytes, Stack size unknown bytes, rk_config_moteur.o(.text))
-<BR><BR>[Called By]<UL><LI><a href="#[2f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;rotleft
-<LI><a href="#[2e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;rotright
+<BR><BR>[Called By]<UL><LI><a href="#[2f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;ROT_LEFT
+<LI><a href="#[2e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;ROT_RIGHT
 </UL>
 
 <P><STRONG><a name="[23]"></a>MOTEUR_GAUCHE_ARRIERE</STRONG> (Thumb, 0 bytes, Stack size unknown bytes, rk_config_moteur.o(.text))
@@ -151,8 +151,8 @@ Global Symbols
 </UL>
 
 <P><STRONG><a name="[24]"></a>MOTEUR_GAUCHE_AVANT</STRONG> (Thumb, 0 bytes, Stack size unknown bytes, rk_config_moteur.o(.text))
-<BR><BR>[Called By]<UL><LI><a href="#[2f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;rotleft
-<LI><a href="#[2e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;rotright
+<BR><BR>[Called By]<UL><LI><a href="#[2f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;ROT_LEFT
+<LI><a href="#[2e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;ROT_RIGHT
 </UL>
 
 <P><STRONG><a name="[25]"></a>MOTEUR_DROIT_INVERSE</STRONG> (Thumb, 0 bytes, Stack size unknown bytes, rk_config_moteur.o(.text), UNUSED, KEPT)
@@ -197,11 +197,11 @@ Global Symbols
 </UL>
 
 <P><STRONG><a name="[2c]"></a>TRAJECTORY_LEFT</STRONG> (Thumb, 0 bytes, Stack size unknown bytes, rk_config_moteur.o(.text))
-<BR><BR>[Called By]<UL><LI><a href="#[2f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;rotleft
+<BR><BR>[Called By]<UL><LI><a href="#[2f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;ROT_LEFT
 </UL>
 
 <P><STRONG><a name="[2d]"></a>TRAJECTORY_RIGHT</STRONG> (Thumb, 0 bytes, Stack size unknown bytes, rk_config_moteur.o(.text))
-<BR><BR>[Called By]<UL><LI><a href="#[2e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;rotright
+<BR><BR>[Called By]<UL><LI><a href="#[2e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;ROT_RIGHT
 </UL>
 
 <P><STRONG><a name="[18]"></a>__main</STRONG> (Thumb, 0 bytes, Stack size unknown bytes, main.o(.text))
@@ -213,7 +213,7 @@ Global Symbols
 <LI><a href="#[17]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;MOTEUR_INIT
 </UL>
 
-<P><STRONG><a name="[2e]"></a>rotright</STRONG> (Thumb, 0 bytes, Stack size unknown bytes, main.o(.text))
+<P><STRONG><a name="[2e]"></a>ROT_RIGHT</STRONG> (Thumb, 0 bytes, Stack size unknown bytes, main.o(.text))
 <BR><BR>[Calls]<UL><LI><a href="#[3c]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;LED_ETHERNET_2_OFF
 <LI><a href="#[39]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;LED_ETHERNET_1_ON
 <LI><a href="#[2d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;TRAJECTORY_RIGHT
@@ -226,7 +226,7 @@ Global Symbols
 <LI><a href="#[31]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;BUMPER_CHECK_GAUCHE
 </UL>
 
-<P><STRONG><a name="[2f]"></a>rotleft</STRONG> (Thumb, 0 bytes, Stack size unknown bytes, main.o(.text))
+<P><STRONG><a name="[2f]"></a>ROT_LEFT</STRONG> (Thumb, 0 bytes, Stack size unknown bytes, main.o(.text))
 <BR><BR>[Calls]<UL><LI><a href="#[3a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;LED_ETHERNET_2_ON
 <LI><a href="#[3b]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;LED_ETHERNET_1_OFF
 <LI><a href="#[41]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HANDLE_SWITCH_PRESS
@@ -249,19 +249,19 @@ Global Symbols
 </UL>
 
 <P><STRONG><a name="[30]"></a>BUMPER_CHECK_DROIT</STRONG> (Thumb, 0 bytes, Stack size unknown bytes, rk_config_bumper.o(.text))
-<BR><BR>[Calls]<UL><LI><a href="#[2f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;rotleft
+<BR><BR>[Calls]<UL><LI><a href="#[2f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;ROT_LEFT
 <LI><a href="#[42]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;RETURN
 <LI><a href="#[27]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;CALL_MOTEUR_RECULER_SHORT
 </UL>
-<BR>[Called By]<UL><LI><a href="#[2f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;rotleft
+<BR>[Called By]<UL><LI><a href="#[2f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;ROT_LEFT
 </UL>
 
 <P><STRONG><a name="[31]"></a>BUMPER_CHECK_GAUCHE</STRONG> (Thumb, 0 bytes, Stack size unknown bytes, rk_config_bumper.o(.text))
-<BR><BR>[Calls]<UL><LI><a href="#[2e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;rotright
+<BR><BR>[Calls]<UL><LI><a href="#[2e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;ROT_RIGHT
 <LI><a href="#[42]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;RETURN
 <LI><a href="#[27]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;CALL_MOTEUR_RECULER_SHORT
 </UL>
-<BR>[Called By]<UL><LI><a href="#[2f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;rotleft
+<BR>[Called By]<UL><LI><a href="#[2f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;ROT_LEFT
 </UL>
 
 <P><STRONG><a name="[32]"></a>HANDLE_BUMPER_SET_SPEED</STRONG> (Thumb, 0 bytes, Stack size unknown bytes, rk_config_bumper.o(.text))
@@ -307,19 +307,19 @@ Global Symbols
 </UL>
 
 <P><STRONG><a name="[39]"></a>LED_ETHERNET_1_ON</STRONG> (Thumb, 0 bytes, Stack size unknown bytes, rk_config_led.o(.text))
-<BR><BR>[Called By]<UL><LI><a href="#[2e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;rotright
+<BR><BR>[Called By]<UL><LI><a href="#[2e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;ROT_RIGHT
 </UL>
 
 <P><STRONG><a name="[3a]"></a>LED_ETHERNET_2_ON</STRONG> (Thumb, 0 bytes, Stack size unknown bytes, rk_config_led.o(.text))
-<BR><BR>[Called By]<UL><LI><a href="#[2f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;rotleft
+<BR><BR>[Called By]<UL><LI><a href="#[2f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;ROT_LEFT
 </UL>
 
 <P><STRONG><a name="[3b]"></a>LED_ETHERNET_1_OFF</STRONG> (Thumb, 0 bytes, Stack size unknown bytes, rk_config_led.o(.text))
-<BR><BR>[Called By]<UL><LI><a href="#[2f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;rotleft
+<BR><BR>[Called By]<UL><LI><a href="#[2f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;ROT_LEFT
 </UL>
 
 <P><STRONG><a name="[3c]"></a>LED_ETHERNET_2_OFF</STRONG> (Thumb, 0 bytes, Stack size unknown bytes, rk_config_led.o(.text))
-<BR><BR>[Called By]<UL><LI><a href="#[2e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;rotright
+<BR><BR>[Called By]<UL><LI><a href="#[2e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;ROT_RIGHT
 </UL>
 
 <P><STRONG><a name="[3d]"></a>LED_ETHERNET_ALL_INVERT</STRONG> (Thumb, 0 bytes, Stack size unknown bytes, rk_config_led.o(.text), UNUSED, KEPT)
@@ -357,10 +357,10 @@ Global Symbols
 </UL>
 
 <P><STRONG><a name="[41]"></a>HANDLE_SWITCH_PRESS</STRONG> (Thumb, 0 bytes, Stack size unknown bytes, rk_config_switch.o(.text))
-<BR><BR>[Calls]<UL><LI><a href="#[2f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;rotleft
-<LI><a href="#[2e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;rotright
+<BR><BR>[Calls]<UL><LI><a href="#[2f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;ROT_LEFT
+<LI><a href="#[2e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;ROT_RIGHT
 </UL>
-<BR>[Called By]<UL><LI><a href="#[2f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;rotleft
+<BR>[Called By]<UL><LI><a href="#[2f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;ROT_LEFT
 <LI><a href="#[18]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__main
 </UL>
 
